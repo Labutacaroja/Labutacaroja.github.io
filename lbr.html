@@ -112,16 +112,26 @@
         // Asignar valores a los elementos
         document.getElementById('videoSource').src = videoSrc;
         document.getElementById('videoTitle').textContent = videoTitle;
-        document.getElementById('copyButton').href = `${videoSrc}`;
 
-        // Función para copiar enlace
+        // Función para copiar enlace y compartir en dispositivos móviles
         document.getElementById('copyButton').addEventListener('click', function(event) {
             event.preventDefault();
-            navigator.clipboard.writeText(videoSrc).then(() => {
-                this.style.backgroundColor = '#fff';
-                this.style.color = '#cc5500';
-                this.textContent = 'Enlace copiado';
-            });
+            if (navigator.share) {
+                navigator.share({
+                    title: videoTitle,
+                    url: videoSrc
+                }).then(() => {
+                    console.log('Enlace compartido exitosamente');
+                }).catch((error) => {
+                    console.error('Error al compartir el enlace:', error);
+                });
+            } else {
+                navigator.clipboard.writeText(videoSrc).then(() => {
+                    this.style.backgroundColor = '#fff';
+                    this.style.color = '#cc5500';
+                    this.textContent = 'Enlace copiado';
+                });
+            }
         });
     </script>
 </body>
