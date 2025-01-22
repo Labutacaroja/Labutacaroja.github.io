@@ -100,13 +100,12 @@
         document.getElementById('videoTitle').textContent = videoTitle;
 
         // Función para copiar enlace
-        document.getElementById('copyButton').addEventListener('click', function() {
-            navigator.clipboard.writeText(videoSrc).then(function() {
-                document.getElementById('copyButton').textContent = 'Enlace Copiado';
-                document.getElementById('copyButton').style.backgroundColor = '#000';
-                document.getElementById('copyButton').style.color = '#ffa500';
-            }, function(err) {
-                console.error('Error al copiar el enlace: ', err);
+        document.getElementById('copyButton').addEventListener('click', function(event) {
+            event.preventDefault();
+            navigator.clipboard.writeText(videoSrc).then(() => {
+                this.style.backgroundColor = '#fff';
+                this.style.color = '#cc5500';
+                this.textContent = 'Enlace copiado';
             });
         });
     </script>
