@@ -88,19 +88,7 @@
 
         document.getElementById('vlc-button').addEventListener('click', function(event) {
             event.preventDefault();
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Abrir con VLC',
-                    text: 'Abrir con VLC',
-                    url: videoUrl
-                }).then(() => {
-                    console.log('Compartido con éxito');
-                }).catch((error) => {
-                    console.error('Error al compartir', error);
-                });
-            } else {
-                window.location.href = `vlc://${videoUrl}`;
-            }
+            window.location.href = `vlc://${videoUrl}`;
         });
     </script>
 </body>
