@@ -59,6 +59,27 @@
             width: 24px;
             height: 24px;
         }
+        .copy-button {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: darkorange;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .copy-button.copied {
+            background-color: white;
+            color: darkorange;
+        }
+        .instructions {
+            color: orange;
+            text-align: center;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -78,6 +99,16 @@
     <a href="#" class="button" id="vlc-button">
         <img src="https://cdn.icon-icons.com/icons2/3053/PNG/512/vlc_alt_macos_bigsur_icon_189582.png" alt="VLC Icon"> Abrir con VLC
     </a>
+    <div class="important">
+        IMPORTANTE: <span>Si no abre VLC puedes pulsar el botón "Copiar Enlace y Pegar en VLC".</span>
+    </div>
+    <a href="#" class="copy-button" id="copy-button">Copiar Enlace y Pegar en VLC</a>
+    <div class="instructions">
+        Dispositivos Móviles: Abre VLC y pega el enlace copiado en "Nuevo Flujo"
+    </div>
+    <div class="instructions">
+        Desde PC: Abre VLC y pulsa "ctrl+N , ctrl+V , ENTER"
+    </div>
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const videoUrl = urlParams.get('video');
@@ -89,6 +120,17 @@
         document.getElementById('vlc-button').addEventListener('click', function(event) {
             event.preventDefault();
             window.location.href = `vlc://${videoUrl}`;
+        });
+
+        document.getElementById('copy-button').addEventListener('click', function(event) {
+            event.preventDefault();
+            navigator.clipboard.writeText(videoUrl).then(() => {
+                const copyButton = document.getElementById('copy-button');
+                copyButton.textContent = 'Enlace Copiado';
+                copyButton.classList.add('copied');
+            }).catch((error) => {
+                console.error('Error al copiar el enlace', error);
+            });
         });
     </script>
 </body>
