@@ -128,7 +128,7 @@
         document.getElementById('copy-button').addEventListener('click', function(event) {
             event.preventDefault();
             navigator.clipboard.writeText(videoUrl).then(() => {
-                const copyButton = document.getElementById('copy-button');
+                const copyButton = document.getElementById('videoUrl');
                 copyButton.textContent = 'Enlace Copiado';
                 copyButton.classList.add('copied');
             }).catch((error) => {
