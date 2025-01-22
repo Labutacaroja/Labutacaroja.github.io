@@ -98,6 +98,7 @@
         // Asignar valores a los elementos
         document.getElementById('videoSource').src = videoSrc;
         document.getElementById('videoTitle').textContent = videoTitle;
+        document.getElementById('copyButton').href = `${videoSrc}`;
 
         // Función para copiar enlace
         document.getElementById('copyButton').addEventListener('click', function(event) {
