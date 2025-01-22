@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Butaca Roja</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        header {
+            background-color: #000;
+            color: #ff0000;
+            padding: 20px;
+            text-align: center;
+            font-size: 2em;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        video {
+            width: 80%;
+            max-width: 800px;
+            margin: 20px 0;
+        }
+        .file-info {
+            font-size: 1.2em;
+            color: #d3d3d3;
+        }
+        .file-info span {
+            color: #ff0000;
+        }
+        #videoTitle {
+            color: #d3d3d3;
+        }
+        .instructions {
+            margin: 20px 0;
+            text-align: center;
+            color: #d3d3d3;
+        }
+        .copy-button {
+            background-color: #ffa500;
+            color: #000;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            font-size: 1em;
+        }
+        .copy-button img {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+        }
+        .copy-button:active {
+            background-color: #000;
+            color: #ffa500;
+        }
+    </style>
+</head>
+<body>
+    <header></header>
+    <div class="container">
+        <video controls>
+            <source src="" id="videoSource" type="video/mp4">
+            Tu navegador no soporta la reproducción de video.
+        </video>
+        <div class="file-info">
+            <p><span>Título:</span> <span id="videoTitle"></span></p>
+        </div>
+        <div class="instructions">
+            Para abrir con VLC mantener presionado el botón "Copiar enlace" y Pulsar "Compartir con...", seleccionar VLC y se abrirá el video en el reproductor.
+        </div>
+        <button class="copy-button" id="copyButton">
+            <img src="https://cdn.icon-icons.com/icons2/3053/PNG/512/vlc_alt_macos_bigsur_icon_189582.png" alt="VLC Icon">
+            Copiar Enlace
+        </button>
+    </div>
+    <script>
+        // Obtener parámetros de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const videoSrc = urlParams.get('video');
+        const videoTitle = urlParams.get('title');
+
+        // Asignar valores a los elementos
+        document.getElementById('videoSource').src = videoSrc;
+        document.getElementById('videoTitle').textContent = videoTitle;
+
+        // Función para copiar enlace
+        document.getElementById('copyButton').addEventListener('click', function() {
+            navigator.clipboard.writeText(videoSrc).then(function() {
+                document.getElementById('copyButton').textContent = 'Enlace Copiado';
+                document.getElementById('copyButton').style.backgroundColor = '#000';
+                document.getElementById('copyButton').style.color = '#ffa500';
+            }, function(err) {
+                console.error('Error al copiar el enlace: ', err);
+            });
+        });
+    </script>
+</body>
+</html>
