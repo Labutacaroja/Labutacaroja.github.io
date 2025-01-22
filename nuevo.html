@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Butaca Roja</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        header {
+            text-align: center;
+            color: red;
+            font-size: 2em;
+            margin-top: 20px;
+        }
+        .video-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .video-container video {
+            width: 80%;
+            max-width: 800px;
+        }
+        .title {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .title span {
+            color: grey;
+        }
+        .important {
+            color: red;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .important span {
+            color: orange;
+        }
+        .button {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: orange;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .button img {
+            vertical-align: middle;
+            margin-right: 10px;
+            width: 24px;
+            height: 24px;
+        }
+    </style>
+</head>
+<body>
+    <header>La Butaca Roja</header>
+    <div class="video-container">
+        <video controls>
+            <source src="" type="video/mp4">
+            Tu navegador no soporta la reproducción de video.
+        </video>
+    </div>
+    <div class="title">
+        Titulo: <span></span>
+    </div>
+    <div class="important">
+        IMPORTANTE: <span>Si no reproduce audio o video o es un archivo MKV pulsa el botón "Abrir con VLC".</span>
+    </div>
+    <a href="#" class="button" id="vlc-button">
+        <img src="https://cdn.icon-icons.com/icons2/3053/PNG/512/vlc_alt_macos_bigsur_icon_189582.png" alt="VLC Icon"> Abrir con VLC
+    </a>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const videoUrl = urlParams.get('video');
+        const videoTitle = urlParams.get('title');
+
+        document.querySelector('video source').src = videoUrl;
+        document.querySelector('.title span').textContent = videoTitle;
+
+        document.getElementById('vlc-button').addEventListener('click', function(event) {
+            event.preventDefault();
+            window.location.href = `vlc://${videoUrl}`;
+        });
+    </script>
+</body>
+</html>
