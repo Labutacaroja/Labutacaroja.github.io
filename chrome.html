@@ -114,7 +114,11 @@
 
         document.getElementById('vlc-button').addEventListener('click', function(event) {
             event.preventDefault();
-            window.location.href = `vlc://${videoUrl}`;
+            let modifiedUrl = videoUrl;
+            if (isChromeMobile) {
+                modifiedUrl = videoUrl.replace('https://', '');
+            }
+            window.location.href = `vlc://${modifiedUrl}`;
             this.style.backgroundColor = '#000';
         });
 
