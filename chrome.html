@@ -103,4 +103,35 @@
         IMPORTANTE: <span>Si no abre VLC puedes pulsar el botón "Copiar Enlace y Pegar en VLC".</span>
     </div>
     <a href="#" class="copy-button" id="copy-button">Copiar Enlace y Pegar en VLC</a>
-    <div
+    <div class="instructions">
+        Dispositivos Móviles: Abre VLC y pega el enlace copiado en "Nuevo Flujo"
+    </div>
+    <div class="instructions">
+        Desde PC: Abre VLC y pulsa "ctrl+N , ctrl+V , ENTER"
+    </div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const videoUrl = urlParams.get('video');
+        const videoTitle = urlParams.get('title');
+
+        document.querySelector('video source').src = videoUrl;
+        document.querySelector('.title span').textContent = videoTitle;
+
+        document.getElementById('vlc-button').addEventListener('click', function(event) {
+            event.preventDefault();
+            window.location.href = `vlc://${videoUrl}`;
+        });
+
+        const copyButton = document.getElementById('copy-button');
+        copyButton.addEventListener('click', function(event) {
+            event.preventDefault();
+            navigator.clipboard.writeText(videoUrl).then(() => {
+                copyButton.textContent = 'Enlace Copiado';
+                copyButton.classList.add('copied');
+            }).catch((error) => {
+                console.error('Error al copiar el enlace', error);
+            });
+        });
+    </script>
+</body>
+</html>
