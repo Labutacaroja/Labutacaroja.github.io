@@ -96,7 +96,7 @@
     </header>
     <div class="title" id="video-title"></div>
     <video id="video-player" controls>
-        <source src="video.mp4" type="video/mp4">
+        <source src="" type="video/mp4">
         Tu navegador no soporta el elemento de video.
     </video>
     <div class="controls">
@@ -124,6 +124,7 @@
         const videoTitle = urlParams.get('title');
 
         document.getElementById('video-title').textContent = videoTitle;
+        document.getElementById('video-player').src = videoUrl;
         document.getElementById('vlc-button').href = `vlc://${videoUrl}`;
         document.getElementById('copy-link-button').href = `${videoUrl}`;
 
