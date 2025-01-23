@@ -68,6 +68,26 @@
             background: #fff;
             margin: 20px 0;
         }
+        video {
+            display: block;
+            margin: 20px auto;
+            width: 80%;
+            max-width: 600px;
+        }
+        .controls {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .controls button {
+            background-color: #ff6600;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -75,6 +95,14 @@
         <h1>La Butaca Roja</h1>
     </header>
     <div class="title" id="video-title"></div>
+    <video id="video-player" controls>
+        <source src="video.mp4" type="video/mp4">
+        Tu navegador no soporta el elemento de video.
+    </video>
+    <div class="controls">
+        <button id="rewind">Retroceder 10s</button>
+        <button id="forward">Adelantar 10s</button>
+    </div>
     <a href="#" class="button" id="vlc-button">
         <img src="https://cdn.icon-icons.com/icons2/3053/PNG/512/vlc_alt_macos_bigsur_icon_189582.png" alt="VLC Icon">
         Abrir con VLC
@@ -113,6 +141,14 @@
                 this.textContent = 'Enlace copiado';
             });
         });
+
+        const videoPlayer = document.getElementById('video-player');
+        document.getElementById('rewind').addEventListener('click', () => {
+            videoPlayer.currentTime -= 10;
+        });
+        document.getElementById('forward').addEventListener('click', () => {
+            videoPlayer.currentTime += 10;
+        });
     </script>
 </body>
-</html> 
+</html>
