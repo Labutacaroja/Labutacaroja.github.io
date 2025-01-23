@@ -105,6 +105,8 @@
 
         if (!isChromeMobile) {
             document.getElementById('video-player').src = videoUrl;
+        } else {
+            document.getElementById('video-player').src = videoUrl;
         }
 
         document.getElementById('vlc-button').href = `vlc://${videoUrl}`;
