@@ -76,6 +76,28 @@
             text-align: center;
             margin-top: 5px;
         }
+        .important-text {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .important-text span {
+            color: red;
+            font-weight: bold;
+        }
+        .important-text .orange-text {
+            color: orange;
+            font-weight: bold;
+        }
+        .mobile-text, .pc-text {
+            text-align: center;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .pc-extension-text {
+            text-align: center;
+            font-size: 12px;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -93,13 +115,14 @@
     </a>
     <div class="small-text">(Dispositivos móviles)</div>
     <hr>
+    <div class="important-text"><span>IMPORTANTE:</span> <span class="orange-text">Si no abre VLC puedes pulsar el botón "Copiar Enlace y Pegar en VLC".</span></div>
     <a href="#" class="button-dark" id="copy-link-button">
         Copiar Enlace y Pegar en VLC
     </a>
-    <div class="small-text">(PC - Extensión "Abrir en VLC" recomendada para los navegadores Chrome, Edge, Opera y Firefox.)</div>
+    <div class="mobile-text">Dispositivos Móviles: Abre VLC y pega el enlace copiado en "Nuevo Flujo"</div>
+    <div class="pc-text">Desde PC: Abre VLC y pulsa "ctrl+N , ctrl+V , ENTER"</div>
+    <div class="pc-extension-text">(PC - Extensión "Abrir en VLC" recomendada para los navegadores Chrome, Edge, Opera y Firefox.)</div>
     <a href="https://webextension.org/listing/open-in-vlc.html?version=0.4.3&type=install" target="_blank" class="download-link">Descargar extensión pulsando aquí</a>
-    <br>
-    <div class="small-text">(Navegadores que no abra VLC desde el boton "Abrir con VLC", mantener pulsado el boton "Copiar Enlace" y Compartir con...VLC)</div>
     
     <script>
         const urlParams = new URLSearchParams(window.location.search);
@@ -107,15 +130,10 @@
         const videoTitle = urlParams.get('title');
 
         document.getElementById('video-title').textContent = videoTitle;
+        document.getElementById('video-player').src = videoUrl;
 
         // Detectar si es Chrome en un dispositivo móvil
         const isChromeMobile = /Chrome/.test(navigator.userAgent) && /Android|iPhone|iPad|iPod/.test(navigator.userAgent);
-
-        if (!isChromeMobile) {
-            document.getElementById('video-player').src = videoUrl;
-        } else {
-            document.getElementById('video-player').src = videoUrl;
-        }
 
         document.getElementById('vlc-button').href = `vlc://${videoUrl}`;
         document.getElementById('copy-link-button').href = `${videoUrl}`;
