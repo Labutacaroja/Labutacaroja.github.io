@@ -6,48 +6,23 @@
     <title>La Butaca Roja</title>
     <style>
         body {
-            background-color: black;
-            color: white;
+            background-color: #333;
+            color: #fff;
             font-family: Arial, sans-serif;
         }
         header {
+            background-color: #000;
+            color: #ff0000;
             text-align: center;
-            color: red;
-            font-size: 2em;
-            margin-top: 20px;
-        }
-        .video-container {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-        }
-        .video-container video {
-            width: 80%;
-            max-width: 800px;
-        }
-        .title {
-            color: red;
-            text-align: center;
-            margin-top: 10px;
-        }
-        .title span {
-            color: grey;
-        }
-        .important {
-            color: red;
-            text-align: center;
-            margin-top: 20px;
-        }
-        .important span {
-            color: orange;
+            padding: 20px;
         }
         .button {
             display: block;
             width: 200px;
             margin: 20px auto;
             padding: 10px;
-            background-color: orange;
-            color: white;
+            background-color: #ff6600;
+            color: #fff;
             text-align: center;
             text-decoration: none;
             border-radius: 5px;
@@ -59,79 +34,85 @@
             width: 24px;
             height: 24px;
         }
-        .copy-button {
+        .title {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 20px;
+        }
+        .small-text {
+            text-align: center;
+            font-size: 12px;
+            margin-top: -10px;
+        }
+        .button-dark {
             display: block;
             width: 200px;
             margin: 20px auto;
             padding: 10px;
-            background-color: darkorange;
-            color: white;
+            background-color: #cc5500;
+            color: #fff;
             text-align: center;
             text-decoration: none;
             border-radius: 5px;
             font-size: 16px;
         }
-        .copy-button.copied {
-            background-color: white;
-            color: darkorange;
+        .button-dark img {
+            vertical-align: middle;
+            margin-right: 10px;
+            width: 24px;
+            height: 24px;
         }
-        .instructions {
-            color: orange;
-            text-align: center;
-            margin-top: 20px;
+        hr {
+            border: 0;
+            height: 1px;
+            background: #fff;
+            margin: 20px 0;
         }
     </style>
 </head>
 <body>
-    <header>La Butaca Roja</header>
-    <div class="video-container">
-        <video controls>
-            <source src="" type="video/mp4">
-            Tu navegador no soporta la reproducción de video.
-        </video>
-    </div>
-    <div class="title">
-        Titulo: <span></span>
-    </div>
-    <div class="important">
-        IMPORTANTE: <span>Si no reproduce audio o video o es un archivo MKV pulsa el botón "Abrir con VLC".</span>
-    </div>
+    <header>
+        <h1>La Butaca Roja</h1>
+    </header>
+    <div class="title" id="video-title"></div>
     <a href="#" class="button" id="vlc-button">
-        <img src="https://cdn.icon-icons.com/icons2/3053/PNG/512/vlc_alt_macos_bigsur_icon_189582.png" alt="VLC Icon"> Abrir con VLC
+        <img src="https://cdn.icon-icons.com/icons2/3053/PNG/512/vlc_alt_macos_bigsur_icon_189582.png" alt="VLC Icon">
+        Abrir con VLC
     </a>
-    <div class="important">
-        IMPORTANTE: <span>Si no abre VLC puedes pulsar el botón "Copiar Enlace y Pegar en VLC".</span>
-    </div>
-    <a href="#" class="copy-button" id="copy-button">Copiar Enlace y Pegar en VLC</a>
-    <div class="instructions">
-        Dispositivos Móviles: Abre VLC y pega el enlace copiado en "Nuevo Flujo"
-    </div>
-    <div class="instructions">
-        Desde PC: Abre VLC y pulsa "ctrl+N , ctrl+V , ENTER"
-    </div>
+    <div class="small-text">(Dispositivos móviles)</div>
+    <hr>
+    <a href="#" class="button-dark" id="copy-link-button">
+        <img src="https://cdn.icon-icons.com/icons2/82/PNG/128/apps_vlc_15743.png" alt="Link Icon">
+        Copiar Enlace y Pegar en VLC
+    </a>
+    <div class="small-text">(PC de escritorio)</div>
+    <br>
+    <div class="small-text">(Navegadores que no abra VLC desde el boton "Abrir con VLC",
+        mantener pulsado el boton "Copiar Enlace" y Compartir con...VLC)</div>
+    
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const videoUrl = urlParams.get('video');
         const videoTitle = urlParams.get('title');
 
-        document.querySelector('video source').src = videoUrl;
-        document.querySelector('.title span').textContent = videoTitle;
+        document.getElementById('video-title').textContent = videoTitle;
+        document.getElementById('vlc-button').href = `vlc://${videoUrl}`;
+        document.getElementById('copy-link-button').href = `${videoUrl}`;
 
         document.getElementById('vlc-button').addEventListener('click', function(event) {
             event.preventDefault();
             window.location.href = `vlc://${videoUrl}`;
+            this.style.backgroundColor = '#000';
         });
 
-        const copyButton = document.getElementById('copy-button');
-        copyButton.addEventListener('click', function(event) {
+        document.getElementById('copy-link-button').addEventListener('click', function(event) {
             event.preventDefault();
             navigator.clipboard.writeText(videoUrl).then(() => {
-                copyButton.textContent = 'Enlace Copiado';
-                copyButton.classList.add('copied');
-            }).catch((error) => {
-                console.error('Error al copiar el enlace', error);
+                this.style.backgroundColor = '#fff';
+                this.style.color = '#cc5500';
+                this.textContent = 'Enlace copiado';
             });
         });
     </script>
 </body>
-</html>
+</html> 
