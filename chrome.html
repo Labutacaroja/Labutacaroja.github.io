@@ -106,7 +106,14 @@
         const videoTitle = urlParams.get('title');
 
         document.getElementById('video-title').textContent = videoTitle;
-        document.getElementById('video-player').src = videoUrl;
+
+        // Detectar si es Chrome en un dispositivo móvil
+        const isChromeMobile = /Chrome/.test(navigator.userAgent) && /Android|iPhone|iPad|iPod/.test(navigator.userAgent);
+
+        if (!isChromeMobile) {
+            document.getElementById('video-player').src = videoUrl;
+        }
+
         document.getElementById('vlc-button').href = `vlc://${videoUrl}`;
         document.getElementById('copy-link-button').href = `${videoUrl}`;
 
