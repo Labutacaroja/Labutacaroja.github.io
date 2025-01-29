@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reproductor de Video</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    video {
+      width: 100%;
+      border-radius: 8px;
+    }
+    .file-name {
+      margin-top: 20px;
+      font-size: 18px;
+      text-align: center;
+    }
+    .vlc-button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-top: 20px;
+      background-color: #0078d7;
+      color: #fff;
+      text-align: center;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    .vlc-button:hover {
+      background-color: #005bb5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <video controls>
+      <source src="{{ url }}" type="video/mp4">
+      Tu navegador no soporta la reproducción de video.
+    </video>
+    <div class="file-name" id="fileName"></div>
+    <a href="#" class="vlc-button" id="vlcButton">Abrir en VLC</a>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const videoUrl = urlParams.get('url');
+    const fileName = urlParams.get('name');
+
+    // Mostrar el nombre del archivo
+    document.getElementById('fileName').textContent = fileName;
+
+    // Configurar el reproductor de video
+    const videoElement = document.querySelector('video source');
+    videoElement.src = videoUrl;
+
+    // Eliminar "https://" o "http://" de la URL para el botón VLC
+    const vlcUrl = videoUrl.replace(/^https?:\/\//, '');
+
+    // Configurar el botón para abrir en VLC
+    const vlcButton = document.getElementById('vlcButton');
+    vlcButton.href = vlc://${vlcUrl};
+  </script>
+</body>
+</html>
