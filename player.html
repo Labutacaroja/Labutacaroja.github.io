@@ -7,72 +7,55 @@
   <style>
     body {
       font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
       margin: 0;
-      padding: 20px;
-      background-color: #f4f4f4;
-    }
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
     video {
       width: 100%;
-      border-radius: 8px;
+      max-width: 600px;
     }
-    .file-name {
-      margin-top: 20px;
-      font-size: 18px;
+    .container {
       text-align: center;
     }
-    .vlc-button {
-      display: block;
-      width: 100%;
-      padding: 10px;
-      margin-top: 20px;
-      background-color: #0078d7;
-      color: #fff;
-      text-align: center;
-      text-decoration: none;
-      border-radius: 8px;
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
       font-size: 16px;
-    }
-    .vlc-button:hover {
-      background-color: #005bb5;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <video controls>
-      <source src="{{ url }}" type="video/mp4">
-      Tu navegador no soporta la reproducción de video.
-    </video>
-    <div class="file-name" id="fileName"></div>
-    <a href="#" class="vlc-button" id="vlcButton">Abrir en VLC</a>
+    <video id="videoPlayer" controls></video>
+    <h2 id="videoTitle"></h2>
+    <button id="openVLC">Abrir en VLC</button>
   </div>
 
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const videoUrl = urlParams.get('url');
-    const fileName = urlParams.get('name');
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const videoUrl = urlParams.get('url');
+      const videoName = urlParams.get('name');
 
-    // Mostrar el nombre del archivo
-    document.getElementById('fileName').textContent = fileName;
+      if (videoUrl) {
+        document.getElementById('videoPlayer').src = videoUrl;
+        document.getElementById('videoTitle').textContent = videoName;
 
-    // Configurar el reproductor de video
-    const videoElement = document.querySelector('video source');
-    videoElement.src = videoUrl;
+        document.getElementById('openVLC').addEventListener('click', () => {
+          window.location.href = `vlc://${videoUrl}`;
+        });
 
-    // Eliminar "https://" o "http://" de la URL para el botón VLC
-    const vlcUrl = videoUrl.replace(/^https?:\/\//, '');
-
-    // Configurar el botón para abrir en VLC
-    const vlcButton = document.getElementById('vlcButton');
-    vlcButton.href = vlc://${vlcUrl};
+        // Eliminar "https://" o "http://" de la URL del archivo
+        if (navigator.userAgent.includes('Chrome') || navigator.userAgent.includes('Firefox')) {
+          const cleanUrl = videoUrl.replace(/^https?:\/\//, '');
+          document.getElementById('videoPlayer').src = cleanUrl;
+        }
+      }
+    });
   </script>
 </body>
 </html>
