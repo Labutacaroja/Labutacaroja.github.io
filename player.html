@@ -5,27 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reproductor de Video</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-    }
-    video {
-      width: 100%;
-      max-width: 600px;
-    }
-    .container {
-      text-align: center;
-    }
-    button {
-      margin-top: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-    }
+    body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+    video { width: 100%; max-width: 600px; }
+    .container { text-align: center; }
+    button { margin-top: 10px; padding: 10px 20px; font-size: 16px; }
   </style>
 </head>
 <body>
@@ -34,21 +17,17 @@
     <h2 id="videoTitle"></h2>
     <button id="openVLC">Abrir en VLC</button>
   </div>
-
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const urlParams = new URLSearchParams(window.location.search);
       const videoUrl = urlParams.get('url');
       const videoName = urlParams.get('name');
-
       if (videoUrl) {
         document.getElementById('videoPlayer').src = videoUrl;
         document.getElementById('videoTitle').textContent = videoName;
-
         document.getElementById('openVLC').addEventListener('click', () => {
           window.location.href = `vlc://${videoUrl}`;
         });
-
         // Eliminar "https://" o "http://" de la URL del archivo
         if (navigator.userAgent.includes('Chrome') || navigator.userAgent.includes('Firefox')) {
           const cleanUrl = videoUrl.replace(/^https?:\/\//, '');
