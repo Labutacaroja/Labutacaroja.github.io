@@ -1,52 +1,28 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reproductor de Video</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-        }
-        video {
-            width: 80%;
-            max-width: 600px;
-        }
-        button {
-            margin-top: 10px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reproductor de Video</title>
 </head>
 <body>
-    <video id="videoPlayer" controls>
-        <source id="videoSource" src="" type="video/mp4">
-        Tu navegador no soporta la reproducción de videos.
-    </video>
-    <h2 id="videoTitle"></h2>
-    <button id="vlcButton">Abrir con VLC</button>
+  <video id="videoPlayer" controls width="600">
+    <source id="videoSource" type="video/mp4">
+    Tu navegador no soporta la reproducción de videos.
+  </video>
+  <br>
+  <button id="openWithVLC">Abrir con VLC</button>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            let videoUrl = urlParams.get('url');
-            const videoTitle = urlParams.get('title');
-
-            if (videoUrl) {
-                videoUrl = videoUrl.replace(/^https?:\/\//, '');
-                document.getElementById('videoSource').src = 'https://' + videoUrl;
-                document.getElementById('videoPlayer').load();
-                document.getElementById('videoTitle').textContent = videoTitle;
-                document.getElementById('vlcButton').onclick = function() {
-                    window.location.href = 'vlc://' + videoUrl;
-                };
-            }
-        });
-    </script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const videoUrl = urlParams.get('video');
+    if (videoUrl) {
+      document.getElementById('videoSource').src = videoUrl;
+      document.getElementById('videoPlayer').load();
+      document.getElementById('openWithVLC').onclick = () => {
+        window.location.href = `vlc://${videoUrl}`;
+      };
+    }
+  </script>
 </body>
 </html>
