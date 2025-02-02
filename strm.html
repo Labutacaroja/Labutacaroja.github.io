@@ -49,6 +49,17 @@
         .download-link:hover {
             background-color: #218838;
         }
+        .button-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .clear-button {
+            background-color: #dc3545;
+        }
+        .clear-button:hover {
+            background-color: #c82333;
+        }
     </style>
 </head>
 <body>
@@ -64,8 +75,11 @@
             <button type="submit">Generar archivo .strm</button>
         </form>
 
-        <!-- Enlace para descargar el archivo -->
-        <a id="downloadLink" class="download-link" download>Descargar archivo .strm</a>
+        <!-- Contenedor para el enlace de descarga y el botón de limpiar -->
+        <div class="button-container">
+            <a id="downloadLink" class="download-link" download>Descargar archivo .strm</a>
+            <button id="clearButton" class="clear-button" style="display: none;">Limpiar formulario</button>
+        </div>
     </div>
 
     <script>
@@ -85,11 +99,21 @@
             // Generar una URL para el Blob
             const blobUrl = URL.createObjectURL(blob);
 
-            // Mostrar el enlace de descarga
+            // Mostrar el enlace de descarga y el botón de limpiar
             const downloadLink = document.getElementById('downloadLink');
+            const clearButton = document.getElementById('clearButton');
             downloadLink.href = blobUrl;
             downloadLink.download = `${titulo}.strm`;
             downloadLink.style.display = 'block';
+            clearButton.style.display = 'block';
+        });
+
+        // Limpiar el formulario al hacer clic en el botón "Limpiar formulario"
+        document.getElementById('clearButton').addEventListener('click', function() {
+            document.getElementById('titulo').value = '';
+            document.getElementById('url').value = '';
+            document.getElementById('downloadLink').style.display = 'none';
+            this.style.display = 'none';
         });
     </script>
 </body>
