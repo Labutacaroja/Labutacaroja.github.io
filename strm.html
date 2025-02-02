@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de archivos .strm</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .download-link {
+            display: none;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .download-link:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Generador de archivos .strm</h1>
+        <form id="strmForm">
+            <label for="titulo">Título de la película:</label>
+            <input type="text" id="titulo" name="titulo" required>
+
+            <label for="url">URL de la película:</label>
+            <input type="text" id="url" name="url" required>
+
+            <button type="submit">Generar archivo .strm</button>
+        </form>
+
+        <!-- Enlace para descargar el archivo -->
+        <a id="downloadLink" class="download-link" download>Descargar archivo .strm</a>
+    </div>
+
+    <script>
+        document.getElementById('strmForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // Obtener los valores del formulario
+            const titulo = document.getElementById('titulo').value;
+            const url = document.getElementById('url').value;
+
+            // Crear el contenido del archivo .strm
+            const contenido = url;
+
+            // Crear un Blob con el contenido
+            const blob = new Blob([contenido], { type: 'text/plain' });
+
+            // Generar una URL para el Blob
+            const blobUrl = URL.createObjectURL(blob);
+
+            // Mostrar el enlace de descarga
+            const downloadLink = document.getElementById('downloadLink');
+            downloadLink.href = blobUrl;
+            downloadLink.download = `${titulo}.strm`;
+            downloadLink.style.display = 'block';
+        });
+    </script>
+</body>
+</html>
