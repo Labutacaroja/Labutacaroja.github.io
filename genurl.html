@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Texto</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-top: 10px;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Generador de Texto</h1>
+
+<label for="titulo">Título:</label><br>
+<input type="text" id="titulo" placeholder="Introduce el título"><br><br>
+
+<label for="url">URL:</label><br>
+<input type="text" id="url" placeholder="Introduce la URL"><br><br>
+
+<button onclick="generarTexto()">Generar Texto</button><br><br>
+
+<textarea id="textoGenerado" readonly></textarea><br>
+
+<button id="botonCopiar" onclick="copiarTexto()" style="display:none;">Copiar Texto</button>
+<button onclick="limpiarCampos()">Limpiar</button>
+
+<script>
+    function generarTexto() {
+        const titulo = document.getElementById('titulo').value;
+        const url = document.getElementById('url').value;
+        const titlesinespacio = titulo.replace(/ /g, '%20');
+
+        const texto = `📂 Titulo :  \`${titulo}\`
+
+📥 Descargar o Abrir con Web Video Caster para enviar a la TV:
+
+- Copiar 📎 :
+\`${url}\`
+-  Link  de Descarga 🌐  : 
+${url}
+
+🖥 Ver Online sin descargar o con VLC:
+
+http://labutacaroja.github.io/?video=${url}&title=${titlesinespacio}`;
+
+        document.getElementById('textoGenerado').value = texto;
+        document.getElementById('botonCopiar').style.display = 'inline-block';
+    }
+
+    function copiarTexto() {
+        const textoGenerado = document.getElementById('textoGenerado');
+        textoGenerado.select();
+        document.execCommand('copy');
+        alert('Texto copiado al portapapeles');
+    }
+
+    function limpiarCampos() {
+        document.getElementById('titulo').value = '';
+        document.getElementById('url').value = '';
+        document.getElementById('textoGenerado').value = '';
+        document.getElementById('botonCopiar').style.display = 'none';
+    }
+</script>
+
+</body>
+</html>
