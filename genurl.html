@@ -5,47 +5,84 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generador de Texto</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: gray;
-        }
-        textarea {
+        /* Estilos generales */
+        html, body {
+            margin: 0;
+            padding: 0;
             width: 100%;
-            height: 150px;
-            margin-top: 10px;
+            height: 100%;
+            background-color: gray; /* Fondo gris */
+            font-family: Arial, sans-serif;
+            color: white; /* Texto blanco para contrastar con el fondo gris */
         }
+
+        /* Contenedor principal */
+        .container {
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Estilos para los elementos del formulario */
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9; /* Fondo claro para los inputs */
+            color: black; /* Texto negro para los inputs */
+        }
+
+        textarea {
+            height: 150px;
+        }
+
         button {
             margin-top: 10px;
-            padding: 10px;
+            padding: 10px 20px;
             cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff; /* Botón azul */
+            color: white;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0056b3; /* Botón azul oscuro al pasar el mouse */
+        }
+
+        #botonCopiar {
+            display: none; /* Ocultar el botón de copiar inicialmente */
         }
     </style>
 </head>
 <body>
+    <div class="container">
+        <h1>Generador de Texto</h1>
 
-<h1>Generador de Texto</h1>
+        <label for="titulo">Título:</label><br>
+        <input type="text" id="titulo" placeholder="Introduce el título"><br><br>
 
-<label for="titulo">Título:</label><br>
-<input type="text" id="titulo" placeholder="Introduce el título"><br><br>
+        <label for="url">URL:</label><br>
+        <input type="text" id="url" placeholder="Introduce la URL"><br><br>
 
-<label for="url">URL:</label><br>
-<input type="text" id="url" placeholder="Introduce la URL"><br><br>
+        <button onclick="generarTexto()">Generar Texto</button><br><br>
 
-<button onclick="generarTexto()">Generar Texto</button><br><br>
+        <textarea id="textoGenerado" readonly></textarea><br>
 
-<textarea id="textoGenerado" readonly></textarea><br>
+        <button id="botonCopiar" onclick="copiarTexto()">Copiar Texto</button>
+        <button onclick="limpiarCampos()">Limpiar</button>
+    </div>
 
-<button id="botonCopiar" onclick="copiarTexto()" style="display:none;">Copiar Texto</button>
-<button onclick="limpiarCampos()">Limpiar</button>
+    <script>
+        function generarTexto() {
+            const titulo = document.getElementById('titulo').value;
+            const url = document.getElementById('url').value;
+            const titlesinespacio = titulo.replace(/ /g, '%20');
 
-<script>
-    function generarTexto() {
-        const titulo = document.getElementById('titulo').value;
-        const url = document.getElementById('url').value;
-        const titlesinespacio = titulo.replace(/ /g, '%20');
-
-        const texto = `📂 Titulo :  \`${titulo}\`
+            const texto = `📂 Titulo :  \`${titulo}\`
 
 📥 Descargar o Abrir con Web Video Caster para enviar a la TV:
 
@@ -58,24 +95,23 @@ ${url}
 
 http://labutacaroja.github.io/?video=${url}&title=${titlesinespacio}`;
 
-        document.getElementById('textoGenerado').value = texto;
-        document.getElementById('botonCopiar').style.display = 'inline-block';
-    }
+            document.getElementById('textoGenerado').value = texto;
+            document.getElementById('botonCopiar').style.display = 'inline-block';
+        }
 
-    function copiarTexto() {
-        const textoGenerado = document.getElementById('textoGenerado');
-        textoGenerado.select();
-        document.execCommand('copy');
-        alert('Texto copiado al portapapeles');
-    }
+        function copiarTexto() {
+            const textoGenerado = document.getElementById('textoGenerado');
+            textoGenerado.select();
+            document.execCommand('copy');
+            alert('Texto copiado al portapapeles');
+        }
 
-    function limpiarCampos() {
-        document.getElementById('titulo').value = '';
-        document.getElementById('url').value = '';
-        document.getElementById('textoGenerado').value = '';
-        document.getElementById('botonCopiar').style.display = 'none';
-    }
-</script>
-
+        function limpiarCampos() {
+            document.getElementById('titulo').value = '';
+            document.getElementById('url').value = '';
+            document.getElementById('textoGenerado').value = '';
+            document.getElementById('botonCopiar').style.display = 'none';
+        }
+    </script>
 </body>
 </html>
