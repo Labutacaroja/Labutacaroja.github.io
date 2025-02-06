@@ -53,32 +53,25 @@
             background-color: #0056b3; /* Botón azul oscuro al pasar el mouse */
         }
 
-        #botonCopiar {
-            display: none; /* Ocultar el botón de copiar inicialmente */
+        #botonCopiar, #botonLimpiar {
+            display: none; /* Ocultar los botones de copiar y limpiar inicialmente */
         }
 
-        /* Estilos para el formulario SOLO REPRODUCTOR */
-        .solo-reproductor {
+        /* Estilos específicos para el formulario SOLO REPRODUCTOR */
+        .reproductor-container {
             margin-top: 30px;
             padding: 20px;
             background-color: #007bff; /* Fondo azul */
             border-radius: 10px;
         }
 
-        .solo-reproductor textarea {
-            background-color: #e0f7ff; /* Fondo claro para el textarea */
+        .reproductor-container h2 {
+            color: white;
         }
 
-        .solo-reproductor button {
-            background-color: #0056b3; /* Botón azul oscuro */
-        }
-
-        .solo-reproductor button:hover {
-            background-color: #003f7f; /* Botón azul más oscuro al pasar el mouse */
-        }
-
-        #botonLimpiarEnlace {
-            display: none; /* Ocultar el botón de limpiar enlace inicialmente */
+        .reproductor-container textarea {
+            background-color: #f9f9f9;
+            color: black;
         }
     </style>
 </head>
@@ -101,11 +94,12 @@
     </div>
 
     <!-- Formulario SOLO REPRODUCTOR -->
-    <div class="container solo-reproductor">
+    <div class="container reproductor-container">
         <h2>SOLO REPRODUCTOR</h2>
-        <textarea id="textoReproductor" placeholder="Introduce el texto aquí"></textarea><br>
-        <button onclick="quitarEspacios()">QUITAR ESPACIOS</button>
-        <button id="botonLimpiarEnlace" onclick="limpiarEnlace()">LIMPIAR ENLACE</button>
+        <input type="text" id="textoReproductor" placeholder="Introduce el texto"><br><br>
+        <button onclick="quitarEspacios()">QUITAR ESPACIOS COPIAR</button><br><br>
+        <textarea id="resultadoReproductor" readonly></textarea><br>
+        <button id="botonLimpiar" onclick="limpiarReproductor()">LIMPIAR ENLACE</button>
     </div>
 
     <script>
@@ -148,15 +142,23 @@ http://labutacaroja.github.io/?video=${url}&title=${titlesinespacio}`;
 
         // Funciones para el formulario SOLO REPRODUCTOR
         function quitarEspacios() {
-            const textoReproductor = document.getElementById('textoReproductor').value;
-            const textoSinEspacios = textoReproductor.replace(/ /g, '%20');
-            document.getElementById('textoReproductor').value = textoSinEspacios;
-            document.getElementById('botonLimpiarEnlace').style.display = 'inline-block';
+            const texto = document.getElementById('textoReproductor').value;
+            const textoSinEspacios = texto.replace(/ /g, '%20');
+            document.getElementById('resultadoReproductor').value = textoSinEspacios;
+
+            // Copiar al portapapeles
+            navigator.clipboard.writeText(textoSinEspacios).then(() => {
+                alert('Texto copiado al portapapeles');
+            });
+
+            // Mostrar el botón "LIMPIAR ENLACE"
+            document.getElementById('botonLimpiar').style.display = 'inline-block';
         }
 
-        function limpiarEnlace() {
+        function limpiarReproductor() {
             document.getElementById('textoReproductor').value = '';
-            document.getElementById('botonLimpiarEnlace').style.display = 'none';
+            document.getElementById('resultadoReproductor').value = '';
+            document.getElementById('botonLimpiar').style.display = 'none';
         }
     </script>
 </body>
