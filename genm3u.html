@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Líneas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .form-container {
+            margin-bottom: 20px;
+        }
+        .form-container input {
+            display: block;
+            margin-bottom: 10px;
+            padding: 5px;
+            width: 300px;
+        }
+        .form-container button {
+            padding: 10px 20px;
+            margin-right: 10px;
+        }
+        .result-container {
+            margin-top: 20px;
+        }
+        .result-container textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <input type="text" id="titulo" placeholder="TITULO">
+    <input type="text" id="portada" placeholder="PORTADA">
+    <input type="text" id="url" placeholder="URL">
+    <button onclick="generarLinea()">Generar Línea</button>
+    <button onclick="añadirLinea()">+</button>
+</div>
+
+<div class="result-container">
+    <textarea id="resultado" readonly></textarea>
+    <button onclick="copiarResultado()">Copiar</button>
+    <button onclick="limpiarResultado()">Limpiar</button>
+</div>
+
+<script>
+    let resultado = "";
+
+    function generarLinea() {
+        const titulo = document.getElementById('titulo').value;
+        const portada = document.getElementById('portada').value;
+        const url = document.getElementById('url').value;
+
+        const linea = `#EXTINF:-1 tvg-logo="${portada}" group-title="PELICULAS",${titulo}\n${url}\n`;
+        resultado += linea;
+
+        document.getElementById('resultado').value = resultado;
+    }
+
+    function añadirLinea() {
+        generarLinea();
+        document.getElementById('titulo').value = '';
+        document.getElementById('portada').value = '';
+        document.getElementById('url').value = '';
+    }
+
+    function copiarResultado() {
+        const resultadoTextarea = document.getElementById('resultado');
+        resultadoTextarea.select();
+        document.execCommand('copy');
+    }
+
+    function limpiarResultado() {
+        resultado = "";
+        document.getElementById('resultado').value = "";
+        document.getElementById('titulo').value = '';
+        document.getElementById('portada').value = '';
+        document.getElementById('url').value = '';
+    }
+</script>
+
+</body>
+</html>
