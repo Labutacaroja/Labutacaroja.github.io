@@ -5,11 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acortador de URL con Alias</title>
     <style>
+        body {
+            background-color: #333; /* Fondo gris oscuro */
+            color: #fff; /* Texto blanco */
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
         #results {
             margin-top: 20px;
         }
         .link-item {
             margin-bottom: 10px;
+            padding: 10px;
+            background-color: #444; /* Fondo gris más claro para los elementos de la lista */
+            border-radius: 5px;
+        }
+        .link-item a {
+            color: #1e90ff; /* Color azul claro para los enlaces */
+            text-decoration: none;
+        }
+        .link-item a:hover {
+            text-decoration: underline;
         }
         #clearHistory {
             background-color: #ff4444;
@@ -23,6 +40,26 @@
         }
         #clearHistory:hover {
             background-color: #cc0000;
+        }
+        input[type="text"] {
+            padding: 8px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            background-color: #444;
+            color: #fff;
+            width: 300px;
+        }
+        button[type="submit"] {
+            padding: 10px 20px;
+            background-color: #1e90ff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button[type="submit"]:hover {
+            background-color: #0077cc;
         }
     </style>
 </head>
