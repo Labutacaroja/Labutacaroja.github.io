@@ -58,18 +58,10 @@
             }
         });
 
-        // Función para generar un alias legible por humanos
-        function generateHumanReadableAlias() {
-            const adjectives = ['rapido', 'seguro', 'facil', 'genial', 'nuevo', 'bueno', 'cool'];
-            const nouns = ['enlace', 'url', 'web', 'sitio', 'pagina', 'acceso', 'ruta'];
-            const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-            const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
-            const randomNumber = Math.floor(Math.random() * 1000);
-
-            // Crear el alias y eliminar caracteres no permitidos
-            let alias = `${randomAdjective}_${randomNoun}_${randomNumber}`;
-            alias = alias.replace(/[^a-z0-9_]/g, ''); // Solo permite a-z, 0-9 y _
-            return alias;
+        // Función para generar un alias con formato LBR_ + número aleatorio de 5 cifras
+        function generateAlias() {
+            const randomNumber = Math.floor(Math.random() * 90000) + 10000; // Número de 5 cifras
+            return `LBR_${randomNumber}`;
         }
 
         document.getElementById('shortenForm').addEventListener('submit', function(event) {
@@ -80,7 +72,7 @@
 
             // Generar un alias si no se proporciona
             if (!alias) {
-                alias = generateHumanReadableAlias();
+                alias = generateAlias();
             }
 
             const apiUrl = `https://is.gd/create.php?format=json&url=${encodeURIComponent(url)}&shorturl=${encodeURIComponent(alias)}`;
@@ -98,7 +90,11 @@
                         // Actualizar la lista en la página
                         updateLinkList();
                     } else {
-                        alert(`Error: ${data.errormessage}`);
+                        if (data.errorcode === 2) { // Error: Alias ya existe
+                            alert("El alias ya existe. Vuelve a pulsar el botón de Acortar URL.");
+                        } else {
+                            alert(`Error: ${data.errormessage}`);
+                        }
                     }
                 })
                 .catch(error => {
