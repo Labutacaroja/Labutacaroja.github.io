@@ -11,6 +11,19 @@
         .link-item {
             margin-bottom: 10px;
         }
+        #clearHistory {
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        #clearHistory:hover {
+            background-color: #cc0000;
+        }
     </style>
 </head>
 <body>
@@ -19,8 +32,8 @@
         <label for="url">URL:</label>
         <input type="text" id="url" name="url" required>
         <br><br>
-        <label for="alias">Alias:</label>
-        <input type="text" id="alias" name="alias" required>
+        <label for="alias">Alias (opcional):</label>
+        <input type="text" id="alias" name="alias">
         <br><br>
         <button type="submit">Acortar URL</button>
     </form>
@@ -29,6 +42,8 @@
         <h2>Enlaces acortados:</h2>
         <ul id="linkList"></ul>
     </div>
+
+    <button id="clearHistory">⚠️ Borrar historial</button>
 
     <script>
         // Array para almacenar los enlaces acortados
@@ -43,11 +58,25 @@
             }
         });
 
+        // Función para generar un alias legible por humanos
+        function generateHumanReadableAlias() {
+            const adjectives = ['rapido', 'seguro', 'facil', 'genial', 'nuevo', 'bueno', 'cool'];
+            const nouns = ['enlace', 'url', 'web', 'sitio', 'pagina', 'acceso', 'ruta'];
+            const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+            const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+            return `${randomAdjective}-${randomNoun}-${Math.floor(Math.random() * 1000)}`;
+        }
+
         document.getElementById('shortenForm').addEventListener('submit', function(event) {
             event.preventDefault();
 
             const url = document.getElementById('url').value;
-            const alias = document.getElementById('alias').value;
+            let alias = document.getElementById('alias').value;
+
+            // Generar un alias si no se proporciona
+            if (!alias) {
+                alias = generateHumanReadableAlias();
+            }
 
             const apiUrl = `https://is.gd/create.php?format=json&url=${encodeURIComponent(url)}&shorturl=${encodeURIComponent(alias)}`;
 
@@ -55,8 +84,8 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.shorturl) {
-                        // Añadir el enlace acortado al array
-                        shortenedLinks.push({ original: url, shortened: data.shorturl });
+                        // Añadir el enlace acortado al principio del array
+                        shortenedLinks.unshift({ original: url, shortened: data.shorturl });
 
                         // Guardar en localStorage
                         localStorage.setItem('shortenedLinks', JSON.stringify(shortenedLinks));
@@ -87,6 +116,23 @@
                 linkList.appendChild(listItem);
             });
         }
+
+        // Botón para borrar el historial
+        document.getElementById('clearHistory').addEventListener('click', function() {
+            const confirmDelete = confirm("⚠️ ¿Estás seguro de que quieres borrar todo el historial de enlaces? Esta acción no se puede deshacer.");
+            if (confirmDelete) {
+                // Borrar el array de enlaces
+                shortenedLinks = [];
+
+                // Borrar el localStorage
+                localStorage.removeItem('shortenedLinks');
+
+                // Actualizar la lista en la página
+                updateLinkList();
+
+                alert("Historial borrado correctamente.");
+            }
+        });
     </script>
 </body>
 </html>
