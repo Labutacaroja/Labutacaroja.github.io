@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acortador de URL con Alias</title>
+    <style>
+        #results {
+            margin-top: 20px;
+        }
+        .link-item {
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
     <h1>Acortador de URL con Alias</h1>
@@ -17,9 +25,24 @@
         <button type="submit">Acortar URL</button>
     </form>
 
-    <p id="result"></p>
+    <div id="results">
+        <h2>Enlaces acortados:</h2>
+        <ul id="linkList"></ul>
+    </div>
 
     <script>
+        // Array para almacenar los enlaces acortados
+        let shortenedLinks = [];
+
+        // Cargar enlaces guardados en localStorage al cargar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedLinks = localStorage.getItem('shortenedLinks');
+            if (savedLinks) {
+                shortenedLinks = JSON.parse(savedLinks);
+                updateLinkList();
+            }
+        });
+
         document.getElementById('shortenForm').addEventListener('submit', function(event) {
             event.preventDefault();
 
@@ -32,15 +55,38 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.shorturl) {
-                        document.getElementById('result').innerHTML = `URL acortada: <a href="${data.shorturl}" target="_blank">${data.shorturl}</a>`;
+                        // Añadir el enlace acortado al array
+                        shortenedLinks.push({ original: url, shortened: data.shorturl });
+
+                        // Guardar en localStorage
+                        localStorage.setItem('shortenedLinks', JSON.stringify(shortenedLinks));
+
+                        // Actualizar la lista en la página
+                        updateLinkList();
                     } else {
-                        document.getElementById('result').innerHTML = `Error: ${data.errormessage}`;
+                        alert(`Error: ${data.errormessage}`);
                     }
                 })
                 .catch(error => {
-                    document.getElementById('result').innerHTML = `Error: ${error.message}`;
+                    alert(`Error: ${error.message}`);
                 });
         });
+
+        // Función para actualizar la lista de enlaces acortados
+        function updateLinkList() {
+            const linkList = document.getElementById('linkList');
+            linkList.innerHTML = ''; // Limpiar la lista antes de actualizar
+
+            shortenedLinks.forEach(link => {
+                const listItem = document.createElement('li');
+                listItem.className = 'link-item';
+                listItem.innerHTML = `
+                    <strong>Original:</strong> <a href="${link.original}" target="_blank">${link.original}</a><br>
+                    <strong>Acortado:</strong> <a href="${link.shortened}" target="_blank">${link.shortened}</a>
+                `;
+                linkList.appendChild(listItem);
+            });
+        }
     </script>
 </body>
 </html>
