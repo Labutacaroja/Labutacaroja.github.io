@@ -6,74 +6,40 @@
     <title>Reproductor de Streamtape</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             margin: 0;
-            padding: 20px;
-            background-color: #f4f4f9;
-            color: #333;
+            background-color: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
         }
-        h1 {
-            text-align: center;
-        }
-        #video-container {
-            margin-top: 20px;
-            text-align: center;
-        }
-        iframe {
-            width: 100%;
-            max-width: 800px;
-            height: 450px;
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        input[type="text"] {
-            width: 100%;
-            max-width: 500px;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        button:hover {
-            background-color: #0056b3;
+        video {
+            max-width: 100%;
+            max-height: 100%;
         }
     </style>
 </head>
 <body>
-    <h1>Reproductor de Streamtape</h1>
-    <div style="text-align: center;">
-        <input type="text" id="streamtape-url" placeholder="Pega la URL de Streamtape aquí">
-        <button onclick="cargarVideo()">Reproducir</button>
-    </div>
-    <div id="video-container">
-        <!-- Aquí se cargará el iframe -->
-    </div>
+    <video controls autoplay>
+        <source src="" type="video/mp4">
+        Tu navegador no soporta la reproducción de video.
+    </video>
 
     <script>
-        function cargarVideo() {
-            // Obtener la URL ingresada por el usuario
-            const url = document.getElementById('streamtape-url').value;
+        // Obtener la URL del video desde la query string
+        const urlParams = new URLSearchParams(window.location.search);
+        const videoUrl = urlParams.get('video');
 
-            // Verificar si la URL es de Streamtape
-            if (url.includes('streamtape.com')) {
-                // Crear el iframe con la URL proporcionada
-                const iframe = `<iframe src="${url}" allowfullscreen></iframe>`;
-                // Insertar el iframe en el contenedor
-                document.getElementById('video-container').innerHTML = iframe;
-            } else {
-                alert("Por favor, ingresa una URL válida de Streamtape.");
-            }
+        // Verificar si se proporcionó una URL de video
+        if (videoUrl) {
+            // Establecer la URL del video en el elemento <video>
+            const videoElement = document.querySelector('video');
+            videoElement.src = videoUrl;
+        } else {
+            // Mostrar un mensaje si no se proporcionó una URL de video
+            document.body.innerHTML = '<p>No se proporcionó una URL de video.</p>';
         }
     </script>
 </body>
