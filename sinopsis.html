@@ -22,7 +22,7 @@
             }
 
             // API de TMDb
-            let api_key = "d336c933823098e7d4f5221b2eb3d768";
+            let api_key = "TU_API_KEY_AQUI";
             let response = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${api_key}&query=${encodeURIComponent(original_title)}&language=es`);
             let data = await response.json();
 
@@ -36,11 +36,18 @@
             let found_year = first_result.release_date ? first_result.release_date.split("-")[0] : "N/A";
             let found_overview = first_result.overview || "Sinopsis no disponible";
 
-            // Ajuste del título solo si el usuario ingresó un año y no coincide
+            // Ajuste del título si el usuario ingresó un año y no coincide
             let final_title = (expected_year && found_year !== expected_year) ? `${original_title}!` : found_title;
+            let formattedTitle = encodeURIComponent(final_title.replace(/\s/g, "%20"));
 
-            // Formato de salida
-            let resultadoTexto = `${final_title} (${found_year})\n\n${found_overview}\n\n${urlInput}`;
+            // Construcción del formato personalizado
+            let resultadoTexto = `📂 Titulo :  \`${final_title} (${found_year})\`\n\n`;
+            resultadoTexto += `${found_overview}\n\n`;
+            resultadoTexto += `📥 Descargar o Abrir con Web Video Caster para enviar a la TV:\n`;
+            resultadoTexto += `-  Link de Descarga 🌐  :\n${urlInput}\n\n`;
+            resultadoTexto += `🖥 Ver Online sin descargar o con VLC:\n`;
+            resultadoTexto += `http://labutacaroja.github.io/?video=${encodeURIComponent(urlInput)}&title="${formattedTitle}"`;
+
             document.getElementById("resultado").innerText = resultadoTexto;
         }
     </script>
