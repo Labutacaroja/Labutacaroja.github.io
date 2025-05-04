@@ -49,19 +49,17 @@
             let tituloInput = document.getElementById("titulo").value.trim();
             let urlInput = document.getElementById("url").value.trim();
 
-            // Extraer título y año si está presente
             let match = tituloInput.match(/^(.*?)\s*\((\d{4})\)$/);
             let original_title, expected_year;
 
             if (match) {
                 original_title = match[1].trim();
-                expected_year = match[2]; // Si el año está presente, lo guardamos
+                expected_year = match[2];
             } else {
                 original_title = tituloInput;
-                expected_year = null; // Si no hay año, lo dejamos vacío
+                expected_year = null;
             }
 
-            // API de TMDb
             let api_key = "d336c933823098e7d4f5221b2eb3d768";
             let response = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${api_key}&query=${encodeURIComponent(original_title)}&language=es`);
             let data = await response.json();
@@ -74,9 +72,8 @@
             let final_title = original_title;
             let found_year = "N/A";
             let found_overview = "Sinopsis no disponible";
-
-            // Buscar el año correcto en los resultados
             let closest_year = null;
+
             for (let movie of data.results) {
                 let release_year = movie.release_date ? movie.release_date.split("-")[0] : "N/A";
                 if (release_year === expected_year) {
@@ -91,15 +88,12 @@
                 }
             }
 
-            // Si no encontramos el año exacto, usamos el más cercano anterior con "!"
             if (found_year === "N/A" && closest_year) {
                 found_year = closest_year + "!";
             }
 
-            // Formatear el título para VLC (sin espacios, con guiones bajos)
             let formattedTitle = final_title.replace(/\s/g, "_") + `(${found_year})`;
 
-            // Construcción del formato personalizado
             let resultadoTexto = `📂 Titulo :  \`${final_title} (${found_year})\`\n\n`;
             resultadoTexto += `${found_overview}\n\n`;
             resultadoTexto += `📥 Descargar o Abrir con Web Video Caster para enviar a la TV:\n`;
@@ -112,11 +106,7 @@
 
         function copiarAlPortapapeles() {
             let resultado = document.getElementById("resultado").innerText;
-            navigator.clipboard.writeText(resultado).then(() => {
-                alert("Texto copiado al portapapeles");
-            }).catch(err => {
-                alert("Error al copiar");
-            });
+            navigator.clipboard.writeText(resultado);
         }
     </script>
 </head>
