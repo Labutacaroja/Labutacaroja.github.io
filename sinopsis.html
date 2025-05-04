@@ -71,13 +71,32 @@
                 return;
             }
 
-            let first_result = data.results[0];
-            let found_title = first_result.title;
-            let found_year = first_result.release_date ? first_result.release_date.split("-")[0] : "N/A";
-            let found_overview = first_result.overview || "Sinopsis no disponible";
+            let final_title = original_title;
+            let found_year = "N/A";
+            let found_overview = "Sinopsis no disponible";
 
-            // Ajuste del título si el usuario ingresó un año y no coincide
-            let final_title = (expected_year && found_year !== expected_year) ? `${original_title}!` : found_title;
+            // Buscar el año correcto en los resultados
+            let closest_year = null;
+            for (let movie of data.results) {
+                let release_year = movie.release_date ? movie.release_date.split("-")[0] : "N/A";
+                if (release_year === expected_year) {
+                    final_title = movie.title;
+                    found_year = release_year;
+                    found_overview = movie.overview || found_overview;
+                    break;
+                } else if (release_year < expected_year) {
+                    closest_year = release_year;
+                    final_title = movie.title;
+                    found_overview = movie.overview || found_overview;
+                }
+            }
+
+            // Si no encontramos el año exacto, usamos el más cercano anterior con "!"
+            if (found_year === "N/A" && closest_year) {
+                found_year = closest_year + "!";
+            }
+
+            // Formatear el título para VLC (sin espacios, con guiones bajos)
             let formattedTitle = final_title.replace(/\s/g, "_") + `(${found_year})`;
 
             // Construcción del formato personalizado
