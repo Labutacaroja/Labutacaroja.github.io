@@ -46,6 +46,16 @@
         }
     </style>
     <script>
+        async function traducirTexto(texto) {
+            let response = await fetch("https://libretranslate.com/translate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ q: texto, source: "en", target: "es", format: "text" })
+            });
+            let data = await response.json();
+            return data.translatedText || texto; // Si falla la traducción, mantiene el texto original
+        }
+
         async function buscarPelicula() {
             let tituloInput = document.getElementById("titulo").value.trim();
             let urlInput = document.getElementById("url").value.trim();
@@ -91,6 +101,10 @@
 
             if (found_year === "N/A" && closest_year) {
                 found_year = closest_year + "!";
+            }
+
+            if (/^[A-Za-z\s]+$/.test(found_overview)) { // Si la sinopsis está en inglés, traducir
+                found_overview = await traducirTexto(found_overview);
             }
 
             let formattedTitle = final_title.replace(/\s/g, "_") + `(${found_year})`;
