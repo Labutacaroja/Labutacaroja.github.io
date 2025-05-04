@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador de Películas TMDb</title>
+    <script>
+        async function buscarPelicula() {
+            let tituloInput = document.getElementById("titulo").value.trim();
+            let urlInput = document.getElementById("url").value.trim();
+
+            // Extraer título y año si está presente
+            let match = tituloInput.match(/^(.*?)\s*\((\d{4})\)$/);
+            let original_title, expected_year;
+
+            if (match) {
+                original_title = match[1].trim();
+                expected_year = match[2]; // Si el año está presente, lo guardamos
+            } else {
+                original_title = tituloInput;
+                expected_year = null; // Si no hay año, lo dejamos vacío
+            }
+
+            // API de TMDb
+            let api_key = "d336c933823098e7d4f5221b2eb3d768";
+            let response = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${api_key}&query=${encodeURIComponent(original_title)}&language=es`);
+            let data = await response.json();
+
+            if (data.results.length === 0) {
+                document.getElementById("resultado").innerText = `No se encontró: ${tituloInput}`;
+                return;
+            }
+
+            let first_result = data.results[0];
+            let found_title = first_result.title;
+            let found_year = first_result.release_date ? first_result.release_date.split("-")[0] : "N/A";
+            let found_overview = first_result.overview || "Sinopsis no disponible";
+
+            // Ajuste del título solo si el usuario ingresó un año y no coincide
+            let final_title = (expected_year && found_year !== expected_year) ? `${original_title}!` : found_title;
+
+            // Formato de salida
+            let resultadoTexto = `${final_title} (${found_year})\n\n${found_overview}\n\n${urlInput}`;
+            document.getElementById("resultado").innerText = resultadoTexto;
+        }
+    </script>
+</head>
+<body>
+    <h1>Buscador de Películas TMDb</h1>
+    <label for="titulo">Título (Año opcional):</label>
+    <input type="text" id="titulo" placeholder="Ej: ¿Dónde está mamá (2021) o ¿Dónde está mamá">
+    <br><br>
+    <label for="url">URL:</label>
+    <input type="text" id="url" placeholder="Ej: https://ejemplo.com/video.mp4">
+    <br><br>
+    <button onclick="buscarPelicula()">Buscar</button>
+    <h2>Resultado:</h2>
+    <pre id="resultado"></pre>
+</body>
+</html>
