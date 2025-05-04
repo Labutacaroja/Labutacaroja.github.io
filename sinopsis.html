@@ -38,7 +38,9 @@
 
             // Ajuste del título si el usuario ingresó un año y no coincide
             let final_title = (expected_year && found_year !== expected_year) ? `${original_title}!` : found_title;
-            let formattedTitle = encodeURIComponent(final_title.replace(/\s/g, "%20"));
+
+            // Reemplazar espacios en title con guiones bajos
+            let formattedTitle = final_title.replace(/\s/g, "_") + `_${found_year}`;
 
             // Construcción del formato personalizado
             let resultadoTexto = `📂 Titulo :  \`${final_title} (${found_year})\`\n\n`;
