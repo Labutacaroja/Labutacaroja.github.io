@@ -4,6 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buscador de Películas TMDb</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        input {
+            width: 90%;
+            max-width: 500px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        pre {
+            text-align: left;
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            display: inline-block;
+            width: 90%;
+            max-width: 500px;
+            word-wrap: break-word;
+            font-size: 14px;
+        }
+    </style>
     <script>
         async function buscarPelicula() {
             let tituloInput = document.getElementById("titulo").value.trim();
@@ -46,7 +86,7 @@
             resultadoTexto += `📥 Descargar o Abrir con Web Video Caster para enviar a la TV:\n`;
             resultadoTexto += `-  Link de Descarga 🌐  :\n${urlInput}\n\n`;
             resultadoTexto += `🖥 Ver Online sin descargar o con VLC:\n`;
-            resultadoTexto += `http://labutacaroja.github.io/?video=${urlInput}&title="${formattedTitle}"`;
+            resultadoTexto += `http://labutacaroja.github.io/?video=${urlInput}&title=${formattedTitle}`;
 
             document.getElementById("resultado").innerText = resultadoTexto;
         }
@@ -60,36 +100,19 @@
             });
         }
     </script>
-    <style>
-        input {
-            width: 100%;
-            padding: 10px;
-            margin: 5px 0;
-        }
-        button {
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-    </style>
 </head>
 <body>
     <h1>Buscador de Películas TMDb</h1>
-    <label for="titulo">Título (Año opcional):</label>
-    <input type="text" id="titulo" placeholder="Ej: ¿Dónde está mamá (2021) o ¿Dónde está mamá">
-    <br><br>
-    <label for="url">URL:</label>
-    <input type="text" id="url" placeholder="Ej: https://ejemplo.com/video.mp4">
-    <br><br>
+    <label for="titulo">Título (Año opcional):</label><br>
+    <input type="text" id="titulo" placeholder="Ej: ¿Dónde está mamá (2021) o ¿Dónde está mamá"><br>
+    
+    <label for="url">URL:</label><br>
+    <input type="text" id="url" placeholder="Ej: https://ejemplo.com/video.mp4"><br>
+    
     <button onclick="buscarPelicula()">Buscar</button>
     <h2>Resultado:</h2>
-    <pre id="resultado"></pre>
-    <br>
+    <pre id="resultado"></pre><br>
+    
     <button onclick="copiarAlPortapapeles()">Copiar resultados</button>
 </body>
 </html>
