@@ -38,9 +38,7 @@
 
             // Ajuste del título si el usuario ingresó un año y no coincide
             let final_title = (expected_year && found_year !== expected_year) ? `${original_title}!` : found_title;
-
-            // Reemplazar espacios en title con guiones bajos
-            let formattedTitle = final_title.replace(/\s/g, "_") + `_${found_year}`;
+            let formattedTitle = final_title.replace(/\s/g, "_") + `(${found_year})`;
 
             // Construcción del formato personalizado
             let resultadoTexto = `📂 Titulo :  \`${final_title} (${found_year})\`\n\n`;
@@ -48,11 +46,37 @@
             resultadoTexto += `📥 Descargar o Abrir con Web Video Caster para enviar a la TV:\n`;
             resultadoTexto += `-  Link de Descarga 🌐  :\n${urlInput}\n\n`;
             resultadoTexto += `🖥 Ver Online sin descargar o con VLC:\n`;
-            resultadoTexto += `http://labutacaroja.github.io/?video=${encodeURIComponent(urlInput)}&title="${formattedTitle}"`;
+            resultadoTexto += `http://labutacaroja.github.io/?video=${urlInput}&title="${formattedTitle}"`;
 
             document.getElementById("resultado").innerText = resultadoTexto;
         }
+
+        function copiarAlPortapapeles() {
+            let resultado = document.getElementById("resultado").innerText;
+            navigator.clipboard.writeText(resultado).then(() => {
+                alert("Texto copiado al portapapeles");
+            }).catch(err => {
+                alert("Error al copiar");
+            });
+        }
     </script>
+    <style>
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+        }
+        button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
     <h1>Buscador de Películas TMDb</h1>
@@ -65,5 +89,7 @@
     <button onclick="buscarPelicula()">Buscar</button>
     <h2>Resultado:</h2>
     <pre id="resultado"></pre>
+    <br>
+    <button onclick="copiarAlPortapapeles()">Copiar resultados</button>
 </body>
 </html>
