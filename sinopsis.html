@@ -20,6 +20,12 @@
             border: 1px solid #ccc;
             border-radius: 5px;
         }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
         button {
             padding: 10px 15px;
             font-size: 16px;
@@ -28,7 +34,6 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            margin-top: 10px;
         }
         button:hover {
             background-color: #0056b3;
@@ -46,12 +51,6 @@
         }
     </style>
     <script>
-        async function traducirTexto(texto) {
-            let response = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=es&dt=t&q=${encodeURIComponent(texto)}`);
-            let data = await response.json();
-            return data[0][0][0]; 
-        }
-
         async function buscarPelicula() {
             let tituloInput = document.getElementById("titulo").value.trim();
             let urlInput = document.getElementById("url").value.trim();
@@ -99,10 +98,6 @@
                 found_year = closest_year + "!";
             }
 
-            if (/^[A-Za-z\s]+$/.test(found_overview)) { 
-                found_overview = await traducirTexto(found_overview);
-            }
-
             let formattedTitle = final_title.replace(/\s/g, "_") + `(${found_year})`;
 
             let resultadoTexto = `📂 Titulo :  \`${final_title} (${found_year})\`\n\n`;
@@ -113,6 +108,11 @@
             resultadoTexto += `http://labutacaroja.github.io/?video=${urlInput}&title=${formattedTitle}`;
 
             document.getElementById("resultado").innerText = resultadoTexto;
+        }
+
+        function limpiarCampos() {
+            document.getElementById("titulo").value = "";
+            document.getElementById("url").value = "";
         }
 
         function copiarAlPortapapeles() {
@@ -129,7 +129,11 @@
     <label for="url">URL:</label><br>
     <input type="text" id="url" placeholder="Ej: https://ejemplo.com/video.mp4"><br>
     
-    <button onclick="buscarPelicula()">Buscar</button>
+    <div class="button-container">
+        <button onclick="buscarPelicula()">Buscar</button>
+        <button onclick="limpiarCampos()">Limpiar campos</button>
+    </div>
+
     <h2>Resultado:</h2>
     <pre id="resultado"></pre><br>
     
