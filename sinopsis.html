@@ -9,7 +9,7 @@
             font-family: Arial, sans-serif;
             text-align: center;
             padding: 20px;
-            background-color: #d3d3d3; /* Fondo gris */
+            background-color: #d3d3d3;
         }
         input {
             width: 90%;
@@ -47,13 +47,9 @@
     </style>
     <script>
         async function traducirTexto(texto) {
-            let response = await fetch("https://libretranslate.com/translate", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ q: texto, source: "en", target: "es", format: "text" })
-            });
+            let response = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=es&dt=t&q=${encodeURIComponent(texto)}`);
             let data = await response.json();
-            return data.translatedText || texto; // Si falla la traducción, mantiene el texto original
+            return data[0][0][0]; 
         }
 
         async function buscarPelicula() {
@@ -103,7 +99,7 @@
                 found_year = closest_year + "!";
             }
 
-            if (/^[A-Za-z\s]+$/.test(found_overview)) { // Si la sinopsis está en inglés, traducir
+            if (/^[A-Za-z\s]+$/.test(found_overview)) { 
                 found_overview = await traducirTexto(found_overview);
             }
 
