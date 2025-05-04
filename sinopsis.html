@@ -22,7 +22,7 @@
             }
 
             // API de TMDb
-            let api_key = "TU_API_KEY_AQUI";
+            let api_key = "d336c933823098e7d4f5221b2eb3d768";
             let response = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${api_key}&query=${encodeURIComponent(original_title)}&language=es`);
             let data = await response.json();
 
