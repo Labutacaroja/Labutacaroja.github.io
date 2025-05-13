@@ -48,8 +48,11 @@
                     let urlDetalles = `https://api.themoviedb.org/3/movie/${idPelicula}?api_key=${API_KEY}`;
                     let respuestaDetalles = await fetch(urlDetalles);
                     let detalles = await respuestaDetalles.json();
+
+                    console.log(`Géneros originales para ${pelicula}:`, detalles.genres.map(g => g.name));
+
                     let generosTraducidos = detalles.genres.map(g => traduccionesGeneros[g.name] || g.name).join(", ");
-                    return generosTraducidos || "Desconocido";
+                    return generosTraducidos ? generosTraducidos : detalles.genres.map(g => g.name).join(", ") || "Desconocido";
                 }
             } catch (error) {
                 console.error("Error al obtener género:", error);
