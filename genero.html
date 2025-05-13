@@ -38,8 +38,14 @@
             "Western": "Western"
         };
 
+        function limpiarTitulo(titulo) {
+            return titulo.replace(/\s*\(.*\)/g, "").replace(/MKV|La película/g, "").trim();
+        }
+
         async function obtenerGenero(pelicula) {
-            let url = `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(pelicula)}`;
+            let tituloLimpio = limpiarTitulo(pelicula);
+            let url = `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(tituloLimpio)}`;
+
             try {
                 let respuesta = await fetch(url);
                 let datos = await respuesta.json();
@@ -54,10 +60,35 @@
                     let generoOriginal = detalles.genres.length > 0 ? detalles.genres[0].name : "Desconocido";
                     let generoTraducido = traduccionesGeneros[generoOriginal] || generoOriginal;
 
+                    if (generoTraducido === "Desconocido") {
+                        console.log(`Intentando nueva búsqueda para: ${tituloLimpio}`);
+                        return await segundaBusqueda(tituloLimpio);
+                    }
+
                     return generoTraducido;
                 }
             } catch (error) {
                 console.error("Error al obtener género:", error);
+            }
+            return "Desconocido";
+        }
+
+        async function segundaBusqueda(titulo) {
+            let url = `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(titulo)}`;
+            try {
+                let respuesta = await fetch(url);
+                let datos = await respuesta.json();
+                if (datos.results.length > 0) {
+                    let idPelicula = datos.results[0].id;
+                    let urlDetalles = `https://api.themoviedb.org/3/movie/${idPelicula}?api_key=${API_KEY}`;
+                    let respuestaDetalles = await fetch(urlDetalles);
+                    let detalles = await respuestaDetalles.json();
+
+                    let generoOriginal = detalles.genres.length > 0 ? detalles.genres[0].name : "Desconocido";
+                    return traduccionesGeneros[generoOriginal] || generoOriginal;
+                }
+            } catch (error) {
+                console.error("Error en la segunda búsqueda:", error);
             }
             return "Desconocido";
         }
