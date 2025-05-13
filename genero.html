@@ -16,6 +16,28 @@
     <script>
         const API_KEY = "d336c933823098e7d4f5221b2eb3d768"; // Reemplaza con tu clave de TMDb
 
+        const traduccionesGeneros = {
+            "Action": "Acción",
+            "Adventure": "Aventura",
+            "Animation": "Animación",
+            "Comedy": "Comedia",
+            "Crime": "Crimen",
+            "Documentary": "Documental",
+            "Drama": "Drama",
+            "Family": "Familia",
+            "Fantasy": "Fantasía",
+            "History": "Historia",
+            "Horror": "Terror",
+            "Music": "Música",
+            "Mystery": "Misterio",
+            "Romance": "Romance",
+            "Science Fiction": "Ciencia ficción",
+            "TV Movie": "Película de TV",
+            "Thriller": "Suspenso",
+            "War": "Guerra",
+            "Western": "Western"
+        };
+
         async function obtenerGenero(pelicula) {
             let url = `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(pelicula)}`;
             try {
@@ -26,7 +48,8 @@
                     let urlDetalles = `https://api.themoviedb.org/3/movie/${idPelicula}?api_key=${API_KEY}`;
                     let respuestaDetalles = await fetch(urlDetalles);
                     let detalles = await respuestaDetalles.json();
-                    return detalles.genres.map(g => g.name).join(", ") || "Desconocido";
+                    let generosTraducidos = detalles.genres.map(g => traduccionesGeneros[g.name] || g.name).join(", ");
+                    return generosTraducidos || "Desconocido";
                 }
             } catch (error) {
                 console.error("Error al obtener género:", error);
