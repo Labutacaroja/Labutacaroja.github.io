@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procesador de Lista M3U con TMDb</title>
+</head>
+<body>
+    <h2>Procesar Lista M3U con TMDb</h2>
+    <textarea id="m3uInput" rows="10" cols="50" placeholder="Pega aquí tu lista M3U"></textarea><br>
+    <button onclick="procesarM3U()">Procesar</button>
+    <h3>Lista Modificada:</h3>
+    <pre id="output"></pre>
+
+    <script>
+        const API_KEY = "d336c933823098e7d4f5221b2eb3d768"; // Reemplaza con tu clave de TMDb
+        async function obtenerGenero(pelicula) {
+            let url = `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(pelicula)}`;
+            try {
+                let respuesta = await fetch(url);
+                let datos = await respuesta.json();
+                if (datos.results.length > 0) {
+                    let idPelicula = datos.results[0].id;
+                    let urlDetalles = `https://api.themoviedb.org/3/movie/${idPelicula}?api_key=${API_KEY}`;
+                    let respuestaDetalles = await fetch(urlDetalles);
+                    let detalles = await respuestaDetalles.json();
+                    return detalles.genres.map(g => g.name).join(", ") || "Desconocido";
+                }
+            } catch (error) {
+                console.error("Error al obtener género:", error);
+            }
+            return "Desconocido";
+        }
+
+        async function procesarM3U() {
+            let lista = document.getElementById("m3uInput").value;
+            let lineas = lista.split("\n");
+            let nuevaLista = [];
+
+            for (let linea of lineas) {
+                if (linea.startsWith("#EXTINF")) {
+                    let partes = linea.split(",");
+                    let titulo = partes[1].split(" (")[0].trim();
+                    let genero = await obtenerGenero(titulo);
+                    linea = linea.replace(/group-title="[^"]+"/, `group-title="${genero}"`);
+                }
+                nuevaLista.push(linea);
+            }
+
+            document.getElementById("output").textContent = nuevaLista.join("\n");
+        }
+    </script>
+</body>
+</html>
