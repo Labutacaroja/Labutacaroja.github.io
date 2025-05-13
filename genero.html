@@ -51,8 +51,10 @@
 
                     console.log(`Géneros originales para ${pelicula}:`, detalles.genres.map(g => g.name));
 
-                    let generosTraducidos = detalles.genres.map(g => traduccionesGeneros[g.name] || g.name).join(", ");
-                    return generosTraducidos ? generosTraducidos : detalles.genres.map(g => g.name).join(", ") || "Desconocido";
+                    let generoOriginal = detalles.genres.length > 0 ? detalles.genres[0].name : "Desconocido";
+                    let generoTraducido = traduccionesGeneros[generoOriginal] || generoOriginal;
+
+                    return generoTraducido;
                 }
             } catch (error) {
                 console.error("Error al obtener género:", error);
