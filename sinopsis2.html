@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador de Películas TMDb</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #d3d3d3;
+        }
+        input {
+            width: 90%;
+            max-width: 500px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        pre {
+            text-align: left;
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            display: inline-block;
+            width: 90%;
+            max-width: 500px;
+            word-wrap: break-word;
+            font-size: 14px;
+        }
+    </style>
+    <script>
+        async function buscarPelicula() {
+            let tituloInput = document.getElementById("titulo").value.trim();
+            let urlInput = document.getElementById("url").value.trim();
+            
+            let match = tituloInput.match(/^(.*?)\s*\((\d{4})\)$/);
+            let original_title, expected_year;
+            
+            if (match) {
+                original_title = match[1].trim();
+                expected_year = match[2];
+            } else {
+                original_title = tituloInput;
+                expected_year = null;
+            }
+            
+            let api_key = "d336c933823098e7d4f5221b2eb3d768";
+            let response = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${api_key}&query=${encodeURIComponent(original_title)}&language=es`);
+            let data = await response.json();
+
+            if (data.results.length === 0) {
+                document.getElementById("resultado").innerText = `No se encontró: ${tituloInput}`;
+                return;
+            }
+
+            let final_title = original_title;
+            let found_year = "N/A";
+            let found_overview = "Sinopsis no disponible";
+            let closest_year = null;
+
+            for (let movie of data.results) {
+                let release_year = movie.release_date ? movie.release_date.split("-")[0] : "N/A";
+                if (release_year === expected_year) {
+                    final_title = movie.title;
+                    found_year = release_year;
+                    found_overview = movie.overview || found_overview;
+                    break;
+                } else if (release_year < expected_year) {
+                    closest_year = release_year;
+                    final_title = movie.title;
+                    found_overview = movie.overview || found_overview;
+                }
+            }
+
+            if (found_year === "N/A" && closest_year) {
+                found_year = closest_year + "!";
+            }
+
+            // Limitar la sinopsis a 530 caracteres asegurando que termine en "..."
+            if (found_overview.length > 530) {
+                found_overview = found_overview.substring(0, 527) + "...";
+            }
+
+            let formattedTitle = final_title.replace(/\s/g, "_") + `(${found_year})`;
+
+            let resultadoTexto = `📂 Titulo :  \`${final_title} (${found_year})\`\n\n`;
+            resultadoTexto += `${found_overview}\n\n`;
+            resultadoTexto += `📥 Descargar o Abrir con Web Video Caster para enviar a la TV:\n`;
+            resultadoTexto += `-  Link de Descarga 🌐  :\n${urlInput}\n\n`;
+            resultadoTexto += `🖥 Ver Online sin descargar o con VLC:\n`;
+            resultadoTexto += `http://labutacaroja.github.io/?video=${urlInput}&title=${formattedTitle}`;
+
+            document.getElementById("resultado").innerText = resultadoTexto;
+        }
+
+        function limpiarCampos() {
+            document.getElementById("titulo").value = "";
+            document.getElementById("url").value = "";
+        }
+
+        function copiarAlPortapapeles() {
+            let resultado = document.getElementById("resultado").innerText;
+            navigator.clipboard.writeText(resultado);
+        }
+    </script>
+</head>
+<body>
+    <h1>Buscador de Películas TMDb</h1>
+    <label for="titulo">Título (Año opcional):</label><br>
+    <input type="text" id="titulo" placeholder="Ej: ¿Dónde está mamá (2021) o ¿Dónde está mamá"><br>
+
+    <label for="url">URL:</label><br>
+    <input type="text" id="url" placeholder="Ej: https://ejemplo.com/video.mp4"><br>
+
+    <div class="button-container">
+        <button onclick="buscarPelicula()">Buscar</button>
+        <button onclick="limpiarCampos()">Limpiar campos</button>
+    </div>
+
+    <h2>Resultado:</h2>
+    <pre id="resultado"></pre><br>
+
+    <button onclick="copiarAlPortapapeles()">Copiar resultados</button>
+</body>
+</html>
