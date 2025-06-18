@@ -98,9 +98,9 @@
                 found_year = closest_year + "!";
             }
 
-            // Limitar la sinopsis a 530 caracteres asegurando que termine en "..."
-            if (found_overview.length > 530) {
-                found_overview = found_overview.substring(0, 527) + "...";
+            // Limitar la sinopsis a 550 caracteres asegurando que termine en "..."
+            if (found_overview.length > 550) {
+                found_overview = found_overview.substring(0, 547) + "...";
             }
 
             let formattedTitle = final_title.replace(/\s/g, "_") + `(${found_year})`;
