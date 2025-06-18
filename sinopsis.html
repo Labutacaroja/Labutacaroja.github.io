@@ -54,10 +54,10 @@
         async function buscarPelicula() {
             let tituloInput = document.getElementById("titulo").value.trim();
             let urlInput = document.getElementById("url").value.trim();
-
+            
             let match = tituloInput.match(/^(.*?)\s*\((\d{4})\)$/);
             let original_title, expected_year;
-
+            
             if (match) {
                 original_title = match[1].trim();
                 expected_year = match[2];
@@ -65,7 +65,7 @@
                 original_title = tituloInput;
                 expected_year = null;
             }
-
+            
             let api_key = "d336c933823098e7d4f5221b2eb3d768";
             let response = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${api_key}&query=${encodeURIComponent(original_title)}&language=es`);
             let data = await response.json();
@@ -98,6 +98,11 @@
                 found_year = closest_year + "!";
             }
 
+            // Limitar la sinopsis a 550 caracteres asegurando que termine en "..."
+            if (found_overview.length > 550) {
+                found_overview = found_overview.substring(0, 547) + "...";
+            }
+
             let formattedTitle = final_title.replace(/\s/g, "_") + `(${found_year})`;
 
             let resultadoTexto = `📂 Titulo :  \`${final_title} (${found_year})\`\n\n`;
@@ -125,10 +130,10 @@
     <h1>Buscador de Películas TMDb</h1>
     <label for="titulo">Título (Año opcional):</label><br>
     <input type="text" id="titulo" placeholder="Ej: ¿Dónde está mamá (2021) o ¿Dónde está mamá"><br>
-    
+
     <label for="url">URL:</label><br>
     <input type="text" id="url" placeholder="Ej: https://ejemplo.com/video.mp4"><br>
-    
+
     <div class="button-container">
         <button onclick="buscarPelicula()">Buscar</button>
         <button onclick="limpiarCampos()">Limpiar campos</button>
@@ -136,7 +141,7 @@
 
     <h2>Resultado:</h2>
     <pre id="resultado"></pre><br>
-    
+
     <button onclick="copiarAlPortapapeles()">Copiar resultados</button>
 </body>
 </html>
