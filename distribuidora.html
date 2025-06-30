@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buscador de Películas</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2em auto; max-width: 700px; }
+    input, button { padding: 8px; font-size: 1em; }
+    #resultado { margin-top: 1em; }
+  </style>
+</head>
+<body>
+  <h1>Busca información de una película</h1>
+  <input type="text" id="movieInput" placeholder="Introduce el título de la película">
+  <button onclick="buscarPelicula()">Buscar</button>
+  <div id="resultado"></div>
+  
+  <script>
+    async function buscarPelicula() {
+      const titulo = document.getElementById("movieInput").value;
+      const apiKey = "d336c933823098e7d4f5221b2eb3d768"; // Sustituye con tu API Key de TMDb
+      const resultadoDiv = document.getElementById("resultado");
+      resultadoDiv.innerHTML = "Buscando...";
+      
+      try {
+        // Buscar la película por título
+        const urlBusqueda = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(titulo)}`;
+        const respuestaBusqueda = await fetch(urlBusqueda);
+        const datosBusqueda = await respuestaBusqueda.json();
+        
+        if (datosBusqueda.results && datosBusqueda.results.length > 0) {
+          const pelicula = datosBusqueda.results[0];
+          const idPelicula = pelicula.id;
+          
+          // Obtener detalles de la película (para extraer compañías de producción)
+          const urlDetalles = `https://api.themoviedb.org/3/movie/${idPelicula}?api_key=${apiKey}`;
+          const respuestaDetalles = await fetch(urlDetalles);
+          const datosDetalles = await respuestaDetalles.json();
+          // Aquí usamos "production_companies" como aproximación de la distribuidora.
+          const distribuidora = datosDetalles.production_companies && datosDetalles.production_companies.length > 0 
+                                ? datosDetalles.production_companies.map(comp => comp.name).join(", ") 
+                                : "Información no disponible";
+          
+          // Obtener los proveedores de visualización (suscripción / compra)
+          const urlProveedores = `https://api.themoviedb.org/3/movie/${idPelicula}/watch/providers?api_key=${apiKey}`;
+          const respuestaProveedores = await fetch(urlProveedores);
+          const datosProveedores = await respuestaProveedores.json();
+          let resultadoPlataformas = "";
+          
+          // Usamos "ES" para España. Adaptar según país si es necesario.
+          if (datosProveedores.results && datosProveedores.results.ES) {
+            const proveedoresES = datosProveedores.results.ES;
+            if (proveedoresES.flatrate) {
+              const suscripcion = proveedoresES.flatrate.map(p => p.provider_name).join(", ");
+              resultadoPlataformas += `<p><strong>Por suscripción:</strong> ${suscripcion}</p>`;
+            }
+            if (proveedoresES.buy) {
+              const compra = proveedoresES.buy.map(p => p.provider_name).join(", ");
+              resultadoPlataformas += `<p><strong>Para compra:</strong> ${compra}</p>`;
+            }
+            if (!resultadoPlataformas) {
+              resultadoPlataformas = `<p>No se encontró información de suscripción o compra en este país.</p>`;
+            }
+          } else {
+            resultadoPlataformas = `<p>No hay información de plataformas para España.</p>`;
+          }
+          
+          // Mostrar la información en la página.
+          resultadoDiv.innerHTML = `
+            <h2>${pelicula.title}</h2>
+            <p><strong>Distribuidora (compañías de producción):</strong> ${distribuidora}</p>
+            ${resultadoPlataformas}
+          `;
+        } else {
+          resultadoDiv.innerHTML = "<p>No se encontró la película.</p>";
+        }
+      } catch (error) {
+        console.error(error);
+        resultadoDiv.innerHTML = "<p>Error al buscar la película.</p>";
+      }
+    }
+  </script>
+</body>
+</html>
