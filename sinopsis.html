@@ -107,9 +107,9 @@
 
             let resultadoTexto = `📂 Titulo :  \`${final_title} (${found_year})\`\n\n`;
             resultadoTexto += `${found_overview}\n\n`;
-            resultadoTexto += `📥 Descargar o Abrir con Web Video Caster para enviar a la TV:\n`;
-            resultadoTexto += `-  Link de Descarga 🌐  :\n${urlInput}\n\n`;
-            resultadoTexto += `🖥 Ver Online sin descargar o con VLC:\n`;
+            // resultadoTexto += `📥 Descargar o Abrir con Web Video Caster para enviar a la TV:\n`;
+            // resultadoTexto += `-  Link de Descarga 🌐  :\n${urlInput}\n\n`;
+            // resultadoTexto += `🖥 Ver Online sin descargar o con VLC:\n`;
             resultadoTexto += `http://labutacaroja.github.io/?video=${urlInput}&title=${formattedTitle}`;
 
             document.getElementById("resultado").innerText = resultadoTexto;
@@ -128,8 +128,8 @@
 </head>
 <body>
     <h1>Buscador de Películas TMDb</h1>
-    <label for="titulo">Título (Año opcional):</label><br>
-    <input type="text" id="titulo" placeholder="Ej: ¿Dónde está mamá (2021) o ¿Dónde está mamá"><br>
+    <label for="titulo">Título (Año):</label><br>
+    <input type="text" id="titulo" placeholder="Ej: ¿Dónde está mamá (2021)"><br>
 
     <label for="url">URL:</label><br>
     <input type="text" id="url" placeholder="Ej: https://ejemplo.com/video.mp4"><br>
