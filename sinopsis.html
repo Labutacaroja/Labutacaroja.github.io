@@ -99,8 +99,8 @@
             }
 
             // Limitar la sinopsis a 550 caracteres asegurando que termine en "..."
-            if (found_overview.length > 550) {
-                found_overview = found_overview.substring(0, 547) + "...";
+            if (found_overview.length > 570) {
+                found_overview = found_overview.substring(0, 567) + "...";
             }
 
             let formattedTitle = final_title.replace(/\s/g, "_") + `(${found_year})`;
