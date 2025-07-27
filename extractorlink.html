@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Extractor de StreamAPI</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    input, button { padding: .5rem; margin: .2rem 0; width: 100%; }
+    pre { background: #f4f4f4; padding: 1rem; }
+  </style>
+</head>
+<body>
+
+  <h1>Herramienta de extracción</h1>
+  <label for="url1">Enlace de entrada:</label>
+  <input id="url1" placeholder="https://stream.lcubots.news/V1/watch/…" />
+
+  <button id="btn">Obtener enlace real</button>
+
+  <h2>URL extraída:</h2>
+  <pre id="resultado">—</pre>
+
+  <script>
+    document.getElementById('btn').addEventListener('click', async () => {
+      const input = document.getElementById('url1').value.trim();
+      if (!input) return alert('Pega primero el enlace de entrada');
+
+      // Proxy que evita restricciones CORS
+      const proxy = 'https://api.allorigins.win/raw?url=';
+      const target = proxy + encodeURIComponent(input);
+
+      try {
+        const resp = await fetch(target);
+        if (!resp.ok) throw new Error('Error al cargar la página');
+
+        const html = await resp.text();
+
+        // Regex para capturar la URL streamapi
+        const match = html.match(/https:\/\/streamapi\.mrfooll\.xyz\/[A-Za-z0-9_-]+/);
+        document.getElementById('resultado').textContent = match
+          ? match[0]
+          : 'No se encontró ningún streamapi.mrfooll.xyz en el HTML';
+      }
+      catch (err) {
+        document.getElementById('resultado').textContent = 'Error: ' + err.message;
+      }
+    });
+  </script>
+
+</body>
+</html>
