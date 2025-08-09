@@ -47,7 +47,7 @@
   <input type="number" id="yearTo" placeholder="2023" min="1900" max="2100"><br>
 
   <label for="url">URL:</label><br>
-  <input type="text" id="url" placeholder="Ej: https://ejemplo.com/video.mp4"><br>
+  <input type="text" id="url" placeholder="Ej: https://filetolink.com/download/abc123"><br>
 
   <div class="button-container">
     <button onclick="buscarPelicula()">Buscar</button>
@@ -55,7 +55,6 @@
   </div>
 
   <h2>Resultado:</h2>
-
   <img id="poster" alt="Póster de la película" />
   <div id="opciones-year"></div>
   <pre id="resultado"></pre><br>
@@ -67,31 +66,40 @@
       return url;
     }
 
-    // Nueva función: si la URL empieza por https://filetolink
-    // elimina todas las ocurrencias de "/download"
+    // Nueva función robusta:
+    // 1) Parsea la URL con "new URL(...)"
+    // 2) Solo actúa si el hostname coincide con *.filetolink.<algo>
+    // 3) Elimina todas las ocurrencias de "/download" en el pathname
     function stripFiletolinkDownload(url) {
-      const prefix = 'https://filetolink';
-      if (url.startsWith(prefix)) {
-        return url.replace(/\/download/g, '');
+      try {
+        const u = new URL(url);
+        // Hostname: subdominios opcionales + "filetolink."+TLD
+        if (/^(.+\.)?filetolink\.[a-z]+$/i.test(u.hostname)) {
+          // Borra "/download" (cuando va antes de "/" o al final)
+          u.pathname = u.pathname.replace(/\/download(?=\/|$)/g, '');
+          return u.toString();
+        }
+      } catch (e) {
+        // No era una URL válida: la devolvemos sin tocar
       }
       return url;
     }
 
     async function buscarPelicula() {
       limpiarInterfaz();
-      const tituloInput   = document.getElementById("titulo").value.trim();
-      const urlInputRaw   = document.getElementById("url").value.trim();
-      const yearFrom      = parseInt(document.getElementById("yearFrom").value);
-      const yearTo        = parseInt(document.getElementById("yearTo").value);
+      const tituloInput = document.getElementById("titulo").value.trim();
+      const rawUrl       = document.getElementById("url").value.trim();
+      const yearFrom     = parseInt(document.getElementById("yearFrom").value);
+      const yearTo       = parseInt(document.getElementById("yearTo").value);
 
-      if (!tituloInput || !urlInputRaw) {
+      if (!tituloInput || !rawUrl) {
         alert('Debes rellenar título y URL.');
         return;
       }
 
-      // Resolvemos la URL y luego aplicamos la limpieza de "/download"
-      const resolvedUrl = await resolveStreamUrl(urlInputRaw);
-      const urlInput    = stripFiletolinkDownload(resolvedUrl);
+      // primero resuelvo (si aplica) y luego limpio '/download'
+      const resolved = await resolveStreamUrl(rawUrl);
+      const urlInput = stripFiletolinkDownload(resolved);
 
       const api_key = "d336c933823098e7d4f5221b2eb3d768";
       const resp = await fetch(
@@ -108,14 +116,14 @@
       let resultados = data.results.filter(movie => {
         if (!movie.release_date) return false;
         const y = parseInt(movie.release_date.split("-")[0]);
-        if (yearFrom && yearTo) return y >= yearFrom && y <= yearTo;
-        if (yearFrom) return y >= yearFrom;
-        if (yearTo) return y <= yearTo;
+        if (yearFrom && yearTo)  return y >= yearFrom && y <= yearTo;
+        if (yearFrom)            return y >= yearFrom;
+        if (yearTo)              return y <= yearTo;
         return true;
       });
 
       if (!resultados.length) {
-        mostrarMensaje(`No hay resultados en el rango ${yearFrom || '∞'}–${yearTo || '∞'}.`);
+        mostrarMensaje(`No hay resultados en el rango ${yearFrom||'∞'}–${yearTo||'∞'}.`);
         return;
       }
 
@@ -138,11 +146,10 @@
       document.getElementById("resultado").innerText = texto;
     }
 
-    function mostrarOpcionesYear(lista, urlInput) {
+    function mostrarOpcionesYear(lista, videoUrl) {
       limpiarInterfaz();
       const cont   = document.getElementById("opciones-year");
       const select = document.createElement("select");
-      select.id    = "yearSelector";
       select.style.padding = "5px";
 
       lista.forEach(movie => {
@@ -158,9 +165,9 @@
       btn.textContent = "Seleccionar";
       btn.style.marginLeft = "8px";
       btn.onclick = () => {
-        const selId = parseInt(select.value);
+        const selId = parseInt(select.value, 10);
         const movie = lista.find(m => m.id === selId);
-        mostrarResultado(movie, urlInput);
+        mostrarResultado(movie, videoUrl);
       };
       cont.appendChild(btn);
     }
@@ -169,9 +176,8 @@
       limpiarInterfaz();
 
       if (movie.poster_path) {
-        const posterUrl = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
         const img = document.getElementById("poster");
-        img.src       = posterUrl;
+        img.src = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
         img.style.display = "block";
       }
 
@@ -185,17 +191,16 @@
       const resultadoTexto =
         `📂 Título : \`${movie.title} (${year})\`\n\n`
         + `${overview}\n\n`
-        + `http://labutacaroja.github.io/?video=${videoUrl}`
-        + `&title=${formattedTitle}`;
+        + `http://labutacaroja.github.io/?video=${encodeURIComponent(videoUrl)}`
+        + `&title=${encodeURIComponent(formattedTitle)}`;
 
       document.getElementById("resultado").innerText = resultadoTexto;
     }
 
     function limpiarCampos() {
-      document.getElementById("titulo").value    = "";
-      document.getElementById("yearFrom").value  = "";
-      document.getElementById("yearTo").value    = "";
-      document.getElementById("url").value       = "";
+      ["titulo","yearFrom","yearTo","url"].forEach(id => {
+        document.getElementById(id).value = "";
+      });
       limpiarInterfaz();
     }
 
@@ -206,4 +211,3 @@
   </script>
 </body>
 </html>
-```[43dcd9a7-70db-4a1f-b0ae-981daa162054](https://github.com/la9una/web/tree/ba1073ae044ebb7b538a3b13f0f9598f7c410bb6/docs%2Fbootstrap%2Falignci.md?citationMarker=43dcd9a7-70db-4a1f-b0ae-981daa162054 "1")[43dcd9a7-70db-4a1f-b0ae-981daa162054](https://github.com/CLONATORE/markdowns/tree/82cfb03683ceb807a7091de48045e6a7485acd72/webpack.md?citationMarker=43dcd9a7-70db-4a1f-b0ae-981daa162054 "2")
