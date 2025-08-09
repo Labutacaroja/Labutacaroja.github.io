@@ -67,19 +67,32 @@
       return url;
     }
 
+    // Nueva función: si la URL empieza por https://filetolink
+    // elimina todas las ocurrencias de "/download"
+    function stripFiletolinkDownload(url) {
+      const prefix = 'https://filetolink';
+      if (url.startsWith(prefix)) {
+        return url.replace(/\/download/g, '');
+      }
+      return url;
+    }
+
     async function buscarPelicula() {
       limpiarInterfaz();
-      const tituloInput = document.getElementById("titulo").value.trim();
-      const urlInputRaw = document.getElementById("url").value.trim();
-      const yearFrom = parseInt(document.getElementById("yearFrom").value);
-      const yearTo   = parseInt(document.getElementById("yearTo").value);
+      const tituloInput   = document.getElementById("titulo").value.trim();
+      const urlInputRaw   = document.getElementById("url").value.trim();
+      const yearFrom      = parseInt(document.getElementById("yearFrom").value);
+      const yearTo        = parseInt(document.getElementById("yearTo").value);
 
       if (!tituloInput || !urlInputRaw) {
         alert('Debes rellenar título y URL.');
         return;
       }
 
-      const urlInput = await resolveStreamUrl(urlInputRaw);
+      // Resolvemos la URL y luego aplicamos la limpieza de "/download"
+      const resolvedUrl = await resolveStreamUrl(urlInputRaw);
+      const urlInput    = stripFiletolinkDownload(resolvedUrl);
+
       const api_key = "d336c933823098e7d4f5221b2eb3d768";
       const resp = await fetch(
         `https://api.themoviedb.org/3/search/movie?api_key=${api_key}`
@@ -116,8 +129,8 @@
 
     function limpiarInterfaz() {
       document.getElementById("opciones-year").innerHTML = "";
-      document.getElementById("poster").style.display = "none";
-      document.getElementById("resultado").innerText = "";
+      document.getElementById("poster").style.display   = "none";
+      document.getElementById("resultado").innerText    = "";
     }
 
     function mostrarMensaje(texto) {
@@ -127,16 +140,16 @@
 
     function mostrarOpcionesYear(lista, urlInput) {
       limpiarInterfaz();
-      const cont = document.getElementById("opciones-year");
+      const cont   = document.getElementById("opciones-year");
       const select = document.createElement("select");
-      select.id = "yearSelector";
+      select.id    = "yearSelector";
       select.style.padding = "5px";
 
       lista.forEach(movie => {
         const y = movie.release_date.split("-")[0];
         const opt = document.createElement("option");
         opt.value = movie.id;
-        opt.text = `${movie.title} (${y})`;
+        opt.text  = `${movie.title} (${y})`;
         select.appendChild(opt);
       });
       cont.appendChild(select);
@@ -158,7 +171,7 @@
       if (movie.poster_path) {
         const posterUrl = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
         const img = document.getElementById("poster");
-        img.src = posterUrl;
+        img.src       = posterUrl;
         img.style.display = "block";
       }
 
@@ -193,3 +206,4 @@
   </script>
 </body>
 </html>
+```[43dcd9a7-70db-4a1f-b0ae-981daa162054](https://github.com/la9una/web/tree/ba1073ae044ebb7b538a3b13f0f9598f7c410bb6/docs%2Fbootstrap%2Falignci.md?citationMarker=43dcd9a7-70db-4a1f-b0ae-981daa162054 "1")[43dcd9a7-70db-4a1f-b0ae-981daa162054](https://github.com/CLONATORE/markdowns/tree/82cfb03683ceb807a7091de48045e6a7485acd72/webpack.md?citationMarker=43dcd9a7-70db-4a1f-b0ae-981daa162054 "2")
