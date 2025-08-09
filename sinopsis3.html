@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Buscador de Películas TMDb</title>
   <style>
@@ -49,7 +49,8 @@
   <input type="number" id="yearTo" placeholder="2025" min="1900" max="2100"><br>
 
   <label for="url">URL:</label><br>
-  <input type="text" id="url" placeholder="Ej: https://filetolink.com/download/1234/video.mkv"><br>
+  <input type="text" id="url"
+         placeholder="Ej: https://filetolink.com/download/1234/video.mkv"><br>
 
   <div class="button-container">
     <button onclick="buscarPelicula()">Buscar</button>
@@ -57,22 +58,22 @@
   </div>
 
   <h2>Resultado:</h2>
-  <img id="poster" alt="Póster de la película" />
+  <img id="poster" alt="Póster de la película"/>
   <div id="opciones-year"></div>
   <pre id="resultado"></pre><br>
   <button onclick="copiarAlPortapapeles()">Copiar resultados</button>
 
   <script>
-    // Placeholder para resolver streams, si lo necesitas
+    // placeholder, si usas proxy o servicio específico
     async function resolveStreamUrl(url) {
       return url;
     }
 
-    // Elimina la carpeta "/download" solo en URLs que empiecen por filetolink
-    function stripFiletolinkDownload(url) {
+    // Elimina el primer "/download/" de cualquier URL que comience por "https://filetolink"
+    function stripDownload(url) {
       const prefix = 'https://filetolink';
       if (url.startsWith(prefix)) {
-        // solo eliminamos el primer segmento "/download/"
+        // reemplaza "/download/" por "/" (solo la carpeta download)
         return url.replace('/download/', '/');
       }
       return url;
@@ -90,10 +91,13 @@
         return;
       }
 
-      // Resolver (si aplica) y luego limpiar "/download"
-      const resolved   = await resolveStreamUrl(rawUrl);
-      const urlInput   = stripFiletolinkDownload(resolved);
+      // 1) Resolver stream (si aplica)
+      const resolved = await resolveStreamUrl(rawUrl);
 
+      // 2) Limpiar "/download/" en URLs filetolink
+      const videoUrl = stripDownload(resolved);
+
+      // 3) Llamada a TMDb
       const api_key = "d336c933823098e7d4f5221b2eb3d768";
       const resp = await fetch(
         `https://api.themoviedb.org/3/search/movie?api_key=${api_key}`
@@ -106,10 +110,10 @@
         return;
       }
 
-      // Filtrar por año si se especifica
+      // 4) Filtrar por año si hay rango
       let resultados = data.results.filter(movie => {
         if (!movie.release_date) return false;
-        const y = parseInt(movie.release_date.split("-")[0]);
+        const y = parseInt(movie.release_date.split("-")[0], 10);
         if (yearFrom && yearTo) return y >= yearFrom && y <= yearTo;
         if (yearFrom) return y >= yearFrom;
         if (yearTo) return y <= yearTo;
@@ -121,20 +125,20 @@
         return;
       }
 
-      // Si hay varias y no hay filtro de año, dejo elegir
+      // 5) Si hay varias sin filtros de año, que elija
       if (!yearFrom && !yearTo && resultados.length > 1) {
-        mostrarOpcionesYear(resultados, urlInput);
+        mostrarOpcionesYear(resultados, videoUrl);
         return;
       }
 
-      // Muestro el primero (o único)
-      mostrarResultado(resultados[0], urlInput);
+      // 6) Mostrar directamente el primer resultado
+      mostrarResultado(resultados[0], videoUrl);
     }
 
     function limpiarInterfaz() {
-      document.getElementById("poster").style.display = "none";
+      document.getElementById("poster").style.display   = "none";
       document.getElementById("opciones-year").innerHTML = "";
-      document.getElementById("resultado").innerText = "";
+      document.getElementById("resultado").innerText    = "";
     }
 
     function mostrarMensaje(texto) {
@@ -171,7 +175,7 @@
     function mostrarResultado(movie, videoUrl) {
       limpiarInterfaz();
 
-      // Mostrar póster
+      // Póster
       if (movie.poster_path) {
         const img = document.getElementById("poster");
         img.src = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
@@ -184,15 +188,15 @@
         overview = overview.substring(0, 567) + "...";
       }
 
-      // Formatear título (solo espacios → guiones bajos, mantengo ":")
+      // Formato de título: espacios → guiones bajos, mantengo ":" y otros símbolos
       const year = movie.release_date.split("-")[0];
       const formattedTitle = movie.title.replace(/\s+/g, "_") + `(${year})`;
 
-      // Construir la URL final SIN ENCODING extra
+      // Construcción del texto sin encoding extra
       const resultadoTexto =
         `📂 Título : \`${movie.title} (${year})\`\n\n`
         + `${overview}\n\n`
-        + `http://labutacaroja.github.io/?video=${urlInput}`
+        + `http://labutacaroja.github.io/?video=${videoUrl}`
         + `&title=${formattedTitle}`;
 
       document.getElementById("resultado").innerText = resultadoTexto;
