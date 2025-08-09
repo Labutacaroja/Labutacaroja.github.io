@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Buscador de Películas TMDb</title>
   <style>
     body {
@@ -32,6 +32,8 @@
       background: #f4f4f4;
       padding: 10px;
       border-radius: 4px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
     }
   </style>
 </head>
@@ -39,15 +41,15 @@
   <h1>Buscador de Películas TMDb</h1>
 
   <label for="titulo">Título:</label><br>
-  <input type="text" id="titulo" placeholder="Ej: ¿Dónde está mamá"><br>
+  <input type="text" id="titulo" placeholder="Ej: Jurassic World: El renacer"><br>
 
   <label for="yearFrom">Año desde:</label>
   <input type="number" id="yearFrom" placeholder="2020" min="1900" max="2100">
   <label for="yearTo">Año hasta:</label>
-  <input type="number" id="yearTo" placeholder="2023" min="1900" max="2100"><br>
+  <input type="number" id="yearTo" placeholder="2025" min="1900" max="2100"><br>
 
   <label for="url">URL:</label><br>
-  <input type="text" id="url" placeholder="Ej: https://filetolink.com/download/abc123"><br>
+  <input type="text" id="url" placeholder="Ej: https://filetolink.com/download/1234/video.mkv"><br>
 
   <div class="button-container">
     <button onclick="buscarPelicula()">Buscar</button>
@@ -61,26 +63,17 @@
   <button onclick="copiarAlPortapapeles()">Copiar resultados</button>
 
   <script>
-    // Si tienes un servicio para resolver URL de streaming, reemplaza esta función.
+    // Placeholder para resolver streams, si lo necesitas
     async function resolveStreamUrl(url) {
       return url;
     }
 
-    // Nueva función robusta:
-    // 1) Parsea la URL con "new URL(...)"
-    // 2) Solo actúa si el hostname coincide con *.filetolink.<algo>
-    // 3) Elimina todas las ocurrencias de "/download" en el pathname
+    // Elimina la carpeta "/download" solo en URLs que empiecen por filetolink
     function stripFiletolinkDownload(url) {
-      try {
-        const u = new URL(url);
-        // Hostname: subdominios opcionales + "filetolink."+TLD
-        if (/^(.+\.)?filetolink\.[a-z]+$/i.test(u.hostname)) {
-          // Borra "/download" (cuando va antes de "/" o al final)
-          u.pathname = u.pathname.replace(/\/download(?=\/|$)/g, '');
-          return u.toString();
-        }
-      } catch (e) {
-        // No era una URL válida: la devolvemos sin tocar
+      const prefix = 'https://filetolink';
+      if (url.startsWith(prefix)) {
+        // solo eliminamos el primer segmento "/download/"
+        return url.replace('/download/', '/');
       }
       return url;
     }
@@ -88,18 +81,18 @@
     async function buscarPelicula() {
       limpiarInterfaz();
       const tituloInput = document.getElementById("titulo").value.trim();
-      const rawUrl       = document.getElementById("url").value.trim();
-      const yearFrom     = parseInt(document.getElementById("yearFrom").value);
-      const yearTo       = parseInt(document.getElementById("yearTo").value);
+      const rawUrl      = document.getElementById("url").value.trim();
+      const yearFrom    = parseInt(document.getElementById("yearFrom").value);
+      const yearTo      = parseInt(document.getElementById("yearTo").value);
 
       if (!tituloInput || !rawUrl) {
         alert('Debes rellenar título y URL.');
         return;
       }
 
-      // primero resuelvo (si aplica) y luego limpio '/download'
-      const resolved = await resolveStreamUrl(rawUrl);
-      const urlInput = stripFiletolinkDownload(resolved);
+      // Resolver (si aplica) y luego limpiar "/download"
+      const resolved   = await resolveStreamUrl(rawUrl);
+      const urlInput   = stripFiletolinkDownload(resolved);
 
       const api_key = "d336c933823098e7d4f5221b2eb3d768";
       const resp = await fetch(
@@ -113,12 +106,13 @@
         return;
       }
 
+      // Filtrar por año si se especifica
       let resultados = data.results.filter(movie => {
         if (!movie.release_date) return false;
         const y = parseInt(movie.release_date.split("-")[0]);
-        if (yearFrom && yearTo)  return y >= yearFrom && y <= yearTo;
-        if (yearFrom)            return y >= yearFrom;
-        if (yearTo)              return y <= yearTo;
+        if (yearFrom && yearTo) return y >= yearFrom && y <= yearTo;
+        if (yearFrom) return y >= yearFrom;
+        if (yearTo) return y <= yearTo;
         return true;
       });
 
@@ -127,18 +121,20 @@
         return;
       }
 
+      // Si hay varias y no hay filtro de año, dejo elegir
       if (!yearFrom && !yearTo && resultados.length > 1) {
         mostrarOpcionesYear(resultados, urlInput);
         return;
       }
 
+      // Muestro el primero (o único)
       mostrarResultado(resultados[0], urlInput);
     }
 
     function limpiarInterfaz() {
+      document.getElementById("poster").style.display = "none";
       document.getElementById("opciones-year").innerHTML = "";
-      document.getElementById("poster").style.display   = "none";
-      document.getElementById("resultado").innerText    = "";
+      document.getElementById("resultado").innerText = "";
     }
 
     function mostrarMensaje(texto) {
@@ -148,7 +144,7 @@
 
     function mostrarOpcionesYear(lista, videoUrl) {
       limpiarInterfaz();
-      const cont   = document.getElementById("opciones-year");
+      const cont = document.getElementById("opciones-year");
       const select = document.createElement("select");
       select.style.padding = "5px";
 
@@ -175,24 +171,29 @@
     function mostrarResultado(movie, videoUrl) {
       limpiarInterfaz();
 
+      // Mostrar póster
       if (movie.poster_path) {
         const img = document.getElementById("poster");
         img.src = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
         img.style.display = "block";
       }
 
+      // Sinopsis
       let overview = movie.overview || "Sinopsis no disponible";
       if (overview.length > 570) {
         overview = overview.substring(0, 567) + "...";
       }
 
+      // Formatear título (solo espacios → guiones bajos, mantengo ":")
       const year = movie.release_date.split("-")[0];
       const formattedTitle = movie.title.replace(/\s+/g, "_") + `(${year})`;
+
+      // Construir la URL final SIN ENCODING extra
       const resultadoTexto =
         `📂 Título : \`${movie.title} (${year})\`\n\n`
         + `${overview}\n\n`
-        + `http://labutacaroja.github.io/?video=${encodeURIComponent(videoUrl)}`
-        + `&title=${encodeURIComponent(formattedTitle)}`;
+        + `http://labutacaroja.github.io/?video=${urlInput}`
+        + `&title=${formattedTitle}`;
 
       document.getElementById("resultado").innerText = resultadoTexto;
     }
