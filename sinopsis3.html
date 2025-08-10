@@ -1,216 +1,159 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Buscador de Películas TMDb</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 20px;
-      line-height: 1.6;
+      text-align: center;
+      padding: 20px;
+      background-color: #d3d3d3;
     }
-    input, select, button {
-      margin: 5px 0;
-      padding: 8px;
-      font-size: 14px;
+    input {
+      width: 90%;
+      max-width: 500px;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
     }
     .button-container {
-      margin: 10px 0;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
     }
-    #poster {
-      display: none;
-      width: 200px;
-      margin-bottom: 10px;
+    button {
+      padding: 10px 15px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
       border-radius: 5px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      cursor: pointer;
     }
-    #opciones-year {
-      margin-bottom: 10px;
+    button:hover {
+      background-color: #0056b3;
     }
     pre {
+      text-align: left;
       background: #f4f4f4;
       padding: 10px;
-      border-radius: 4px;
-      white-space: pre-wrap;
+      border-radius: 5px;
+      display: inline-block;
+      width: 90%;
+      max-width: 500px;
       word-wrap: break-word;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
   <h1>Buscador de Películas TMDb</h1>
-
-  <label for="titulo">Título:</label><br>
-  <input type="text" id="titulo" placeholder="Ej: Jurassic World: El renacer"><br>
-
-  <label for="yearFrom">Año desde:</label>
-  <input type="number" id="yearFrom" placeholder="2020" min="1900" max="2100">
-  <label for="yearTo">Año hasta:</label>
-  <input type="number" id="yearTo" placeholder="2025" min="1900" max="2100"><br>
-
+  <label for="titulo">Título (Año):</label><br>
+  <input type="text" id="titulo" placeholder="Ej: ¿Dónde está mamá (2021)"><br>
   <label for="url">URL:</label><br>
-  <input type="text" id="url"
-         placeholder="Ej: https://filetolink.com/download/1234/video.mkv"><br>
-
+  <input type="text" id="url" placeholder="Ej: https://ejemplo.com/video.mp4"><br>
   <div class="button-container">
     <button onclick="buscarPelicula()">Buscar</button>
     <button onclick="limpiarCampos()">Limpiar campos</button>
   </div>
-
   <h2>Resultado:</h2>
-  <img id="poster" alt="Póster de la película"/>
-  <div id="opciones-year"></div>
   <pre id="resultado"></pre><br>
   <button onclick="copiarAlPortapapeles()">Copiar resultados</button>
 
   <script>
-    // placeholder, si usas proxy o servicio específico
-    async function resolveStreamUrl(url) {
-      return url;
-    }
-
-    // Elimina el primer "/download/" de cualquier URL que comience por "https://filetolink"
-    function stripDownload(url) {
-      const prefix = 'https://filetolink';
-      if (url.startsWith(prefix)) {
-        // reemplaza "/download/" por "/" (solo la carpeta download)
-        return url.replace('/download/', '/');
+    async function procesarUrlInteligente(url) {
+      const streamPattern = /^https:\/\/stream\.lcubots\.news\/V1\/watch\/[A-Za-z0-9]+$/;
+      if (streamPattern.test(url)) {
+        const proxy = 'https://api.allorigins.win/raw?url=';
+        const target = proxy + encodeURIComponent(url);
+        try {
+          const resp = await fetch(target);
+          const html = await resp.text();
+          const match = html.match(/https:\/\/streamapi\.mrfooll\.xyz\/[A-Za-z0-9_-]+/);
+          return match ? match[0] : url;
+        } catch (e) {
+          console.warn('No se pudo resolver la URL de StreamAPI:', e);
+          return url;
+        }
       }
+
+      if (url.startsWith("https://filetolink") && url.includes("/download/")) {
+        return url.replace("/download/", "/");
+      }
+
       return url;
     }
 
     async function buscarPelicula() {
-      limpiarInterfaz();
-      const tituloInput = document.getElementById("titulo").value.trim();
-      const rawUrl      = document.getElementById("url").value.trim();
-      const yearFrom    = parseInt(document.getElementById("yearFrom").value);
-      const yearTo      = parseInt(document.getElementById("yearTo").value);
-
-      if (!tituloInput || !rawUrl) {
-        alert('Debes rellenar título y URL.');
-        return;
+      let tituloInput = document.getElementById("titulo").value.trim();
+      let urlInput = document.getElementById("url").value.trim();
+      if (!tituloInput || !urlInput) {
+        return alert('Debes rellenar ambos campos.');
       }
 
-      // 1) Resolver stream (si aplica)
-      const resolved = await resolveStreamUrl(rawUrl);
+      urlInput = await procesarUrlInteligente(urlInput);
 
-      // 2) Limpiar "/download/" en URLs filetolink
-      const videoUrl = stripDownload(resolved);
+      let match = tituloInput.match(/^(.*?)\s*\((\d{4})\)$/);
+      let original_title = match ? match[1].trim() : tituloInput;
+      let expected_year = match ? match[2] : null;
 
-      // 3) Llamada a TMDb
       const api_key = "d336c933823098e7d4f5221b2eb3d768";
-      const resp = await fetch(
-        `https://api.themoviedb.org/3/search/movie?api_key=${api_key}`
-        + `&query=${encodeURIComponent(tituloInput)}&language=es`
+      let resp = await fetch(
+        `https://api.themoviedb.org/3/search/movie?api_key=${api_key}` +
+        `&query=${encodeURIComponent(original_title)}&language=es`
       );
-      const data = await resp.json();
-
+      let data = await resp.json();
       if (!data.results.length) {
-        mostrarMensaje(`No se encontró ninguna película con "${tituloInput}".`);
+        document.getElementById("resultado").innerText = `No se encontró: ${tituloInput}`;
         return;
       }
 
-      // 4) Filtrar por año si hay rango
-      let resultados = data.results.filter(movie => {
-        if (!movie.release_date) return false;
-        const y = parseInt(movie.release_date.split("-")[0], 10);
-        if (yearFrom && yearTo) return y >= yearFrom && y <= yearTo;
-        if (yearFrom) return y >= yearFrom;
-        if (yearTo) return y <= yearTo;
-        return true;
-      });
-
-      if (!resultados.length) {
-        mostrarMensaje(`No hay resultados en el rango ${yearFrom||'∞'}–${yearTo||'∞'}.`);
-        return;
+      let final_title = original_title;
+      let found_year = "N/A";
+      let found_overview = "Sinopsis no disponible";
+      let closest_year = null;
+      for (let movie of data.results) {
+        let year = movie.release_date ? movie.release_date.split("-")[0] : "N/A";
+        if (year === expected_year) {
+          final_title = movie.title;
+          found_year = year;
+          found_overview = movie.overview || found_overview;
+          break;
+        } else if (!closest_year || Math.abs(year - expected_year) < Math.abs(closest_year - expected_year)) {
+          closest_year = year;
+          final_title = movie.title;
+          found_overview = movie.overview || found_overview;
+        }
+      }
+      if (found_year === "N/A" && closest_year) {
+        found_year = closest_year + "!";
       }
 
-      // 5) Si hay varias sin filtros de año, que elija
-      if (!yearFrom && !yearTo && resultados.length > 1) {
-        mostrarOpcionesYear(resultados, videoUrl);
-        return;
+      if (found_overview.length > 570) {
+        found_overview = found_overview.substring(0, 567) + "...";
       }
 
-      // 6) Mostrar directamente el primer resultado
-      mostrarResultado(resultados[0], videoUrl);
-    }
+      let formattedTitle = final_title.replace(/\s/g, "_") + `(${found_year})`;
 
-    function limpiarInterfaz() {
-      document.getElementById("poster").style.display   = "none";
-      document.getElementById("opciones-year").innerHTML = "";
-      document.getElementById("resultado").innerText    = "";
-    }
-
-    function mostrarMensaje(texto) {
-      limpiarInterfaz();
-      document.getElementById("resultado").innerText = texto;
-    }
-
-    function mostrarOpcionesYear(lista, videoUrl) {
-      limpiarInterfaz();
-      const cont = document.getElementById("opciones-year");
-      const select = document.createElement("select");
-      select.style.padding = "5px";
-
-      lista.forEach(movie => {
-        const y = movie.release_date.split("-")[0];
-        const opt = document.createElement("option");
-        opt.value = movie.id;
-        opt.text  = `${movie.title} (${y})`;
-        select.appendChild(opt);
-      });
-      cont.appendChild(select);
-
-      const btn = document.createElement("button");
-      btn.textContent = "Seleccionar";
-      btn.style.marginLeft = "8px";
-      btn.onclick = () => {
-        const selId = parseInt(select.value, 10);
-        const movie = lista.find(m => m.id === selId);
-        mostrarResultado(movie, videoUrl);
-      };
-      cont.appendChild(btn);
-    }
-
-    function mostrarResultado(movie, videoUrl) {
-      limpiarInterfaz();
-
-      // Póster
-      if (movie.poster_path) {
-        const img = document.getElementById("poster");
-        img.src = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
-        img.style.display = "block";
-      }
-
-      // Sinopsis
-      let overview = movie.overview || "Sinopsis no disponible";
-      if (overview.length > 570) {
-        overview = overview.substring(0, 567) + "...";
-      }
-
-      // Formato de título: espacios → guiones bajos, mantengo ":" y otros símbolos
-      const year = movie.release_date.split("-")[0];
-      const formattedTitle = movie.title.replace(/\s+/g, "_") + `(${year})`;
-
-      // Construcción del texto sin encoding extra
-      const resultadoTexto =
-        `📂 Título : \`${movie.title} (${year})\`\n\n`
-        + `${overview}\n\n`
-        + `http://labutacaroja.github.io/?video=${videoUrl}`
-        + `&title=${formattedTitle}`;
-
+      let resultadoTexto = `📂 Titulo : \`${final_title} (${found_year})\`\n\n`;
+      resultadoTexto += `${found_overview}\n\n`;
+      resultadoTexto += `http://labutacaroja.github.io/?video=${urlInput}` + `&title=${formattedTitle}`;
       document.getElementById("resultado").innerText = resultadoTexto;
     }
 
     function limpiarCampos() {
-      ["titulo","yearFrom","yearTo","url"].forEach(id => {
-        document.getElementById(id).value = "";
-      });
-      limpiarInterfaz();
+      document.getElementById("titulo").value = "";
+      document.getElementById("url").value = "";
+      document.getElementById("resultado").innerText = "";
     }
 
     function copiarAlPortapapeles() {
-      const txt = document.getElementById("resultado").innerText;
+      let txt = document.getElementById("resultado").innerText;
       navigator.clipboard.writeText(txt);
     }
   </script>
