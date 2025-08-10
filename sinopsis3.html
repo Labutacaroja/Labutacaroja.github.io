@@ -2,147 +2,206 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Buscador de Películas TMDb</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f2f2f2;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 {
       text-align: center;
+      padding: 20px;
+      background-color: #d3d3d3;
     }
-    input, button, select {
+    input {
+      width: 90%;
+      max-width: 500px;
       padding: 10px;
-      margin: 5px;
+      margin: 10px 0;
       font-size: 16px;
-    }
-    #resultado {
-      margin-top: 20px;
-      white-space: pre-wrap;
-      background: #fff;
-      padding: 10px;
       border: 1px solid #ccc;
+      border-radius: 5px;
     }
-    #poster {
-      max-width: 200px;
+    .button-container {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
       margin-top: 10px;
+    }
+    button {
+      padding: 10px 15px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    pre {
+      text-align: left;
+      background: #f4f4f4;
+      padding: 10px;
+      border-radius: 5px;
+      display: inline-block;
+      width: 90%;
+      max-width: 500px;
+      word-wrap: break-word;
+      font-size: 14px;
+    }
+    img {
+      margin-top: 10px;
+      max-width: 300px;
+      border-radius: 10px;
+    }
+    #selectorPeliculas div {
+      display: inline-block;
+      margin: 10px;
+      cursor: pointer;
+      text-align: center;
+      width: 140px;
+    }
+    #selectorPeliculas img {
+      width: 120px;
+      border-radius: 8px;
     }
   </style>
 </head>
 <body>
   <h1>Buscador de Películas TMDb</h1>
-  <label for="titulo">Título:</label>
-  <input type="text" id="titulo" placeholder="Ej. Jurassic World">
-  <label for="anio">Año:</label>
-  <input type="number" id="anio" placeholder="2025" min="1900" max="2099">
-  <br>
-  <label for="url">URL:</label>
-  <input type="text" id="url" size="80" placeholder="Pega aquí el enlace">
-  <br>
-  <button onclick="buscar()">Buscar</button>
-  <button onclick="limpiar()">Limpiar campos</button>
-  <button onclick="copiar()">Copiar resultado</button>
-
-  <div>
-    <select id="peliculas" onchange="seleccionarPelicula(this.value)">
-      <option value="">-- Selecciona una película --</option>
-    </select>
+  <label for="titulo">Título:</label><br>
+  <input type="text" id="titulo" placeholder="Ej: La ciudad de la alegría"><br>
+  <label for="anio">Año (opcional):</label><br>
+  <input type="text" id="anio" placeholder="Ej: 1992"><br>
+  <label for="url">URL (opcional):</label><br>
+  <input type="text" id="url" placeholder="Ej: https://ejemplo.com/video.mp4"><br>
+  <div id="selectorPeliculas" style="display:none;"></div>
+  <div class="button-container">
+    <button onclick="buscarPelicula()">Buscar</button>
+    <button onclick="limpiarCampos()">Limpiar campos</button>
   </div>
-
-  <img id="poster" src="" alt="Póster">
-  <div id="resultado"></div>
+  <h2>Resultado:</h2>
+  <pre id="resultado"></pre><br>
+  <img id="poster" src="" alt="Poster" style="display:none;">
+  <button onclick="copiarAlPortapapeles()">Copiar resultados</button>
 
   <script>
-    const apiKey = "f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4"; // Reemplaza con tu clave real
-
-    function limpiarFileToLink(url) {
-      if (url.startsWith("https://filetolink")) {
+    async function procesarUrlInteligente(url) {
+      const streamPattern = /^https:\/\/stream\.lcubots\.news\/V1\/watch\/[A-Za-z0-9]+$/;
+      if (streamPattern.test(url)) {
+        const proxy = 'https://api.allorigins.win/raw?url=';
+        const target = proxy + encodeURIComponent(url);
         try {
-          const u = new URL(url);
-          const parts = u.pathname.split("/");
-          if (parts.length >= 4 && parts[1] === "download") {
-            u.pathname = `/${parts[2]}/`;
-            return u.origin + u.pathname + u.search;
-          }
+          const resp = await fetch(target);
+          const html = await resp.text();
+          const match = html.match(/https:\/\/streamapi\.mrfooll\.xyz\/[A-Za-z0-9_-]+/);
+          return match ? match[0] : url;
         } catch (e) {
-          console.warn("URL inválida:", e);
+          console.warn('No se pudo resolver la URL de StreamAPI:', e);
+          return url;
         }
       }
+
+      if (url.startsWith("https://filetolink") && url.includes("/download/")) {
+        return url.replace("/download/", "/");
+      }
+
       return url;
     }
 
-    async function buscar() {
-      const titulo = document.getElementById("titulo").value.trim();
-      const anio = document.getElementById("anio").value.trim();
-      const url = document.getElementById("url").value.trim();
-      if (!titulo || !url) {
-        alert("Por favor, completa título y URL.");
+    async function buscarPelicula() {
+      let tituloInput = document.getElementById("titulo").value.trim();
+      let anioInput = document.getElementById("anio").value.trim();
+      let urlInput = document.getElementById("url").value.trim();
+
+      if (!tituloInput) {
+        return alert('Debes introducir al menos el título.');
+      }
+
+      if (urlInput) {
+        urlInput = await procesarUrlInteligente(urlInput);
+      }
+
+      const api_key = "d336c933823098e7d4f5221b2eb3d768";
+      let resp = await fetch(
+        `https://api.themoviedb.org/3/search/movie?api_key=${api_key}` +
+        `&query=${encodeURIComponent(tituloInput)}&language=es`
+      );
+      let data = await resp.json();
+      if (!data.results.length) {
+        document.getElementById("resultado").innerText = `No se encontró: ${tituloInput}`;
         return;
       }
 
-      const query = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(titulo)}&year=${anio}`;
-      const resp = await fetch(query);
-      const data = await resp.json();
-
-      const select = document.getElementById("peliculas");
-      select.innerHTML = '<option value="">-- Selecciona una película --</option>';
-      data.results.forEach((pelicula, index) => {
-        const option = document.createElement("option");
-        option.value = index;
-        option.textContent = `${pelicula.title} (${pelicula.release_date?.slice(0, 4) || "?"})`;
-        select.appendChild(option);
-      });
-
-      if (data.results.length > 0) {
-        seleccionarPelicula(0);
-      } else {
-        document.getElementById("resultado").textContent = "No se encontraron resultados.";
-        document.getElementById("poster").src = "";
-      }
-    }
-
-    function seleccionarPelicula(index) {
-      const titulo = document.getElementById("titulo").value.trim();
-      const url = document.getElementById("url").value.trim();
-      const anio = document.getElementById("anio").value.trim();
-      const select = document.getElementById("peliculas");
-      const idx = parseInt(index);
-      if (isNaN(idx)) return;
-
-      const query = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(titulo)}&year=${anio}`;
-      fetch(query)
-        .then(resp => resp.json())
-        .then(data => {
-          const pelicula = data.results[idx];
-          const sinopsis = pelicula.overview.length > 300 ? pelicula.overview.slice(0, 300) + "..." : pelicula.overview;
-          const posterUrl = pelicula.poster_path ? `https://image.tmdb.org/t/p/w500${pelicula.poster_path}` : "";
-
-          document.getElementById("poster").src = posterUrl;
-
-          const urlFinal = limpiarFileToLink(url);
-          const enlace = `http://labutacaroja.github.io/?video=${encodeURIComponent(urlFinal)}&title=${encodeURIComponent(pelicula.title)}`;
-
-          const resultado = `🎬 *${pelicula.title}* (${pelicula.release_date?.slice(0, 4) || "?"})\n📝 ${sinopsis}\n📎 ${enlace}`;
-          document.getElementById("resultado").textContent = resultado;
+      if (!anioInput) {
+        let container = document.getElementById("selectorPeliculas");
+        container.innerHTML = "";
+        data.results.forEach((movie) => {
+          let year = movie.release_date ? movie.release_date.split("-")[0] : "N/A";
+          let poster = movie.poster_path ? `https://image.tmdb.org/t/p/w200${movie.poster_path}` : "";
+          let card = document.createElement("div");
+          card.innerHTML = `
+            <img src="${poster}" alt="Poster"><br>
+            <strong>${movie.title}</strong><br>
+            <small>(${year})</small>
+          `;
+          card.onclick = () => mostrarResultado([movie], urlInput, year);
+          container.appendChild(card);
         });
+        container.style.display = "block";
+        return;
+      }
+
+      let filtradas = data.results.filter(m => m.release_date && m.release_date.startsWith(anioInput));
+      if (!filtradas.length) filtradas = [data.results[0]];
+
+      mostrarResultado(filtradas, urlInput, anioInput);
     }
 
-    function limpiar() {
+    function mostrarResultado(movies, urlInput, anioInput) {
+      let movie = movies[0];
+      let final_title = movie.title;
+      let found_year = anioInput || (movie.release_date ? movie.release_date.split("-")[0] : "N/A");
+      let found_overview = movie.overview || "Sinopsis no disponible";
+      let poster_path = movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : "";
+
+      if (found_overview.length > 570) {
+        found_overview = found_overview.substring(0, 567) + "...";
+      }
+
+      let formattedTitle = final_title.replace(/\s/g, "_") + `(${found_year})`;
+      let resultadoTexto = `📂 Titulo : \`${final_title} (${found_year})\`\n\n`;
+      resultadoTexto += `${found_overview}\n\n`;
+
+      if (urlInput) {
+        resultadoTexto += `http://labutacaroja.github.io/?video=${urlInput}&title=${formattedTitle}`;
+      }
+
+      document.getElementById("resultado").innerText = resultadoTexto;
+
+      let poster = document.getElementById("poster");
+      if (poster_path) {
+        poster.src = poster_path;
+        poster.style.display = "block";
+      } else {
+        poster.style.display = "none";
+      }
+
+      document.getElementById("selectorPeliculas").style.display = "none";
+    }
+
+    function limpiarCampos() {
       document.getElementById("titulo").value = "";
       document.getElementById("anio").value = "";
       document.getElementById("url").value = "";
-      document.getElementById("resultado").textContent = "";
-      document.getElementById("poster").src = "";
-      document.getElementById("peliculas").innerHTML = '<option value="">-- Selecciona una película --</option>';
+      document.getElementById("resultado").innerText = "";
+      document.getElementById("poster").style.display = "none";
+      document.getElementById("selectorPeliculas").style.display = "none";
     }
 
-    function copiar() {
-      const texto = document.getElementById("resultado").textContent;
-      navigator.clipboard.writeText(texto).then(() => {
-        alert("Resultado copiado al portapapeles.");
-      });
+    function copiarAlPortapapeles() {
+      let txt = document.getElementById("resultado").innerText;
+      navigator.clipboard.writeText(txt);
     }
   </script>
 </body>
