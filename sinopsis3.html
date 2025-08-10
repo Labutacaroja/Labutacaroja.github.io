@@ -2,99 +2,36 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Buscador de Películas TMDb</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 20px;
-      background-color: #d3d3d3;
-    }
-    input {
-      width: 90%;
-      max-width: 500px;
-      padding: 10px;
-      margin: 10px 0;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-    .button-container {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    button {
-      padding: 10px 15px;
-      font-size: 16px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    pre {
-      text-align: left;
-      background: #f4f4f4;
-      padding: 10px;
-      border-radius: 5px;
-      display: inline-block;
-      width: 90%;
-      max-width: 500px;
-      word-wrap: break-word;
-      font-size: 14px;
-    }
-    img {
-      margin-top: 10px;
-      max-width: 300px;
-      border-radius: 10px;
-    }
-    #selectorPeliculas div {
-      display: inline-block;
-      margin: 10px;
-      cursor: pointer;
-      text-align: center;
-      width: 140px;
-    }
-    #selectorPeliculas img {
-      width: 120px;
-      border-radius: 8px;
-    }
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
+    input, button { padding: 10px; margin: 5px; }
+    #resultado { margin-top: 20px; white-space: pre-wrap; background: #fff; padding: 10px; border: 1px solid #ccc; }
   </style>
 </head>
 <body>
   <h1>Buscador de Películas TMDb</h1>
-  <label for="titulo">Título:</label><br>
-  <input type="text" id="titulo" placeholder="Ej: La ciudad de la alegría"><br>
-  <label for="anio">Año (opcional):</label><br>
-  <input type="text" id="anio" placeholder="Ej: 1992"><br>
-  <label for="url">URL (opcional):</label><br>
-  <input type="text" id="url" placeholder="Ej: https://ejemplo.com/video.mp4"><br>
-  <div id="selectorPeliculas" style="display:none;"></div>
-  <div class="button-container">
-    <button onclick="buscarPelicula()">Buscar</button>
-    <button onclick="limpiarCampos()">Limpiar campos</button>
-  </div>
-  <h2>Resultado:</h2>
-  <pre id="resultado"></pre><br>
-  <img id="poster" src="" alt="Poster" style="display:none;">
-  <button onclick="copiarAlPortapapeles()">Copiar resultados</button>
+  <label for="titulo">Título (Año):</label>
+  <input type="text" id="titulo" placeholder="Ej. La ciudad de la alegría (1992!)">
+  <br>
+  <label for="url">URL:</label>
+  <input type="text" id="url" size="80" placeholder="Pega aquí el enlace">
+  <br>
+  <button onclick="buscar()">Buscar</button>
+  <button onclick="limpiar()">Limpiar campos</button>
+
+  <div id="resultado"></div>
 
   <script>
     async function procesarUrlInteligente(url) {
-      const streamPattern = /^https:\/\/stream\.lcubots\.news\/V1\/watch\/[A-Za-z0-9]+$/;
+      const streamPattern = /^https:\\/\\/stream\\.lcubots\\.news\\/V1\\/watch\\/[A-Za-z0-9]+$/;
       if (streamPattern.test(url)) {
         const proxy = 'https://api.allorigins.win/raw?url=';
         const target = proxy + encodeURIComponent(url);
         try {
           const resp = await fetch(target);
           const html = await resp.text();
-          const match = html.match(/https:\/\/streamapi\.mrfooll\.xyz\/[A-Za-z0-9_-]+/);
+          const match = html.match(/https:\\/\\/streamapi\\.mrfooll\\.xyz\\/[^\"']+/);
           return match ? match[0] : url;
         } catch (e) {
           console.warn('No se pudo resolver la URL de StreamAPI:', e);
@@ -102,106 +39,42 @@
         }
       }
 
-      if (url.startsWith("https://filetolink") && url.includes("/download/")) {
-        return url.replace("/download/", "/");
+      // Limpieza avanzada para filetolink
+      if (url.startsWith("https://filetolink")) {
+        try {
+          const u = new URL(url);
+          const parts = u.pathname.split("/");
+          if (parts.length >= 4 && parts[1] === "download") {
+            u.pathname = `/${parts[2]}/`;
+            return u.origin + u.pathname + u.search;
+          }
+        } catch (e) {
+          console.warn("URL inválida:", e);
+        }
       }
 
       return url;
     }
 
-    async function buscarPelicula() {
-      let tituloInput = document.getElementById("titulo").value.trim();
-      let anioInput = document.getElementById("anio").value.trim();
-      let urlInput = document.getElementById("url").value.trim();
-
-      if (!tituloInput) {
-        return alert('Debes introducir al menos el título.');
-      }
-
-      if (urlInput) {
-        urlInput = await procesarUrlInteligente(urlInput);
-      }
-
-      const api_key = "d336c933823098e7d4f5221b2eb3d768";
-      let resp = await fetch(
-        `https://api.themoviedb.org/3/search/movie?api_key=${api_key}` +
-        `&query=${encodeURIComponent(tituloInput)}&language=es`
-      );
-      let data = await resp.json();
-      if (!data.results.length) {
-        document.getElementById("resultado").innerText = `No se encontró: ${tituloInput}`;
+    async function buscar() {
+      const titulo = document.getElementById("titulo").value.trim();
+      const url = document.getElementById("url").value.trim();
+      if (!titulo || !url) {
+        alert("Por favor, completa ambos campos.");
         return;
       }
 
-      if (!anioInput) {
-        let container = document.getElementById("selectorPeliculas");
-        container.innerHTML = "";
-        data.results.forEach((movie) => {
-          let year = movie.release_date ? movie.release_date.split("-")[0] : "N/A";
-          let poster = movie.poster_path ? `https://image.tmdb.org/t/p/w200${movie.poster_path}` : "";
-          let card = document.createElement("div");
-          card.innerHTML = `
-            <img src="${poster}" alt="Poster"><br>
-            <strong>${movie.title}</strong><br>
-            <small>(${year})</small>
-          `;
-          card.onclick = () => mostrarResultado([movie], urlInput, year);
-          container.appendChild(card);
-        });
-        container.style.display = "block";
-        return;
-      }
+      const urlProcesada = await procesarUrlInteligente(url);
+      const enlaceFinal = `http://labutacaroja.github.io/?video=${encodeURIComponent(urlProcesada)}&title=${encodeURIComponent(titulo)}`;
 
-      let filtradas = data.results.filter(m => m.release_date && m.release_date.startsWith(anioInput));
-      if (!filtradas.length) filtradas = [data.results[0]];
-
-      mostrarResultado(filtradas, urlInput, anioInput);
+      const resultado = `📂 Titulo : \`${titulo}\`\n${enlaceFinal}`;
+      document.getElementById("resultado").textContent = resultado;
     }
 
-    function mostrarResultado(movies, urlInput, anioInput) {
-      let movie = movies[0];
-      let final_title = movie.title;
-      let found_year = anioInput || (movie.release_date ? movie.release_date.split("-")[0] : "N/A");
-      let found_overview = movie.overview || "Sinopsis no disponible";
-      let poster_path = movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : "";
-
-      if (found_overview.length > 570) {
-        found_overview = found_overview.substring(0, 567) + "...";
-      }
-
-      let formattedTitle = final_title.replace(/\s/g, "_") + `(${found_year})`;
-      let resultadoTexto = `📂 Titulo : \`${final_title} (${found_year})\`\n\n`;
-      resultadoTexto += `${found_overview}\n\n`;
-
-      if (urlInput) {
-        resultadoTexto += `http://labutacaroja.github.io/?video=${urlInput}&title=${formattedTitle}`;
-      }
-
-      document.getElementById("resultado").innerText = resultadoTexto;
-
-      let poster = document.getElementById("poster");
-      if (poster_path) {
-        poster.src = poster_path;
-        poster.style.display = "block";
-      } else {
-        poster.style.display = "none";
-      }
-
-      document.getElementById("selectorPeliculas").style.display = "none";
-    }
-
-    function limpiarCampos() {
+    function limpiar() {
       document.getElementById("titulo").value = "";
-      document.getElementById("anio").value = "";
       document.getElementById("url").value = "";
-      document.getElementById("resultado").innerText = "";
-      document.getElementById("poster").style.display = "none";
-      document.getElementById("selectorPeliculas").style.display = "none";
-    }
-
-    function copiarAlPortapapeles() {
-      let txt = document.getElementById("resultado").innerText;
-      navigator.clipboard.writeText(txt);
+      document.getElementById("resultado").textContent = "";
     }
   </script>
 </body>
