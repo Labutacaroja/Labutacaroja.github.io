@@ -4,42 +4,60 @@
   <meta charset="UTF-8">
   <title>Buscador de Películas TMDb</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
-    input, button { padding: 10px; margin: 5px; }
-    #resultado { margin-top: 20px; white-space: pre-wrap; background: #fff; padding: 10px; border: 1px solid #ccc; }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    input, button, select {
+      padding: 10px;
+      margin: 5px;
+      font-size: 16px;
+    }
+    #resultado {
+      margin-top: 20px;
+      white-space: pre-wrap;
+      background: #fff;
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+    #poster {
+      max-width: 200px;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
   <h1>Buscador de Películas TMDb</h1>
-  <label for="titulo">Título (Año):</label>
-  <input type="text" id="titulo" placeholder="Ej. La ciudad de la alegría (1992!)">
+  <label for="titulo">Título:</label>
+  <input type="text" id="titulo" placeholder="Ej. Jurassic World">
+  <label for="anio">Año:</label>
+  <input type="number" id="anio" placeholder="2025" min="1900" max="2099">
   <br>
   <label for="url">URL:</label>
   <input type="text" id="url" size="80" placeholder="Pega aquí el enlace">
   <br>
   <button onclick="buscar()">Buscar</button>
   <button onclick="limpiar()">Limpiar campos</button>
+  <button onclick="copiar()">Copiar resultado</button>
 
+  <div>
+    <select id="peliculas" onchange="seleccionarPelicula(this.value)">
+      <option value="">-- Selecciona una película --</option>
+    </select>
+  </div>
+
+  <img id="poster" src="" alt="Póster">
   <div id="resultado"></div>
 
   <script>
-    async function procesarUrlInteligente(url) {
-      const streamPattern = /^https:\\/\\/stream\\.lcubots\\.news\\/V1\\/watch\\/[A-Za-z0-9]+$/;
-      if (streamPattern.test(url)) {
-        const proxy = 'https://api.allorigins.win/raw?url=';
-        const target = proxy + encodeURIComponent(url);
-        try {
-          const resp = await fetch(target);
-          const html = await resp.text();
-          const match = html.match(/https:\\/\\/streamapi\\.mrfooll\\.xyz\\/[^\"']+/);
-          return match ? match[0] : url;
-        } catch (e) {
-          console.warn('No se pudo resolver la URL de StreamAPI:', e);
-          return url;
-        }
-      }
+    const apiKey = "f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4"; // Reemplaza con tu clave real
 
-      // Limpieza avanzada para filetolink
+    function limpiarFileToLink(url) {
       if (url.startsWith("https://filetolink")) {
         try {
           const u = new URL(url);
@@ -52,29 +70,79 @@
           console.warn("URL inválida:", e);
         }
       }
-
       return url;
     }
 
     async function buscar() {
       const titulo = document.getElementById("titulo").value.trim();
+      const anio = document.getElementById("anio").value.trim();
       const url = document.getElementById("url").value.trim();
       if (!titulo || !url) {
-        alert("Por favor, completa ambos campos.");
+        alert("Por favor, completa título y URL.");
         return;
       }
 
-      const urlProcesada = await procesarUrlInteligente(url);
-      const enlaceFinal = `http://labutacaroja.github.io/?video=${encodeURIComponent(urlProcesada)}&title=${encodeURIComponent(titulo)}`;
+      const query = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(titulo)}&year=${anio}`;
+      const resp = await fetch(query);
+      const data = await resp.json();
 
-      const resultado = `📂 Titulo : \`${titulo}\`\n${enlaceFinal}`;
-      document.getElementById("resultado").textContent = resultado;
+      const select = document.getElementById("peliculas");
+      select.innerHTML = '<option value="">-- Selecciona una película --</option>';
+      data.results.forEach((pelicula, index) => {
+        const option = document.createElement("option");
+        option.value = index;
+        option.textContent = `${pelicula.title} (${pelicula.release_date?.slice(0, 4) || "?"})`;
+        select.appendChild(option);
+      });
+
+      if (data.results.length > 0) {
+        seleccionarPelicula(0);
+      } else {
+        document.getElementById("resultado").textContent = "No se encontraron resultados.";
+        document.getElementById("poster").src = "";
+      }
+    }
+
+    function seleccionarPelicula(index) {
+      const titulo = document.getElementById("titulo").value.trim();
+      const url = document.getElementById("url").value.trim();
+      const anio = document.getElementById("anio").value.trim();
+      const select = document.getElementById("peliculas");
+      const idx = parseInt(index);
+      if (isNaN(idx)) return;
+
+      const query = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(titulo)}&year=${anio}`;
+      fetch(query)
+        .then(resp => resp.json())
+        .then(data => {
+          const pelicula = data.results[idx];
+          const sinopsis = pelicula.overview.length > 300 ? pelicula.overview.slice(0, 300) + "..." : pelicula.overview;
+          const posterUrl = pelicula.poster_path ? `https://image.tmdb.org/t/p/w500${pelicula.poster_path}` : "";
+
+          document.getElementById("poster").src = posterUrl;
+
+          const urlFinal = limpiarFileToLink(url);
+          const enlace = `http://labutacaroja.github.io/?video=${encodeURIComponent(urlFinal)}&title=${encodeURIComponent(pelicula.title)}`;
+
+          const resultado = `🎬 *${pelicula.title}* (${pelicula.release_date?.slice(0, 4) || "?"})\n📝 ${sinopsis}\n📎 ${enlace}`;
+          document.getElementById("resultado").textContent = resultado;
+        });
     }
 
     function limpiar() {
       document.getElementById("titulo").value = "";
+      document.getElementById("anio").value = "";
       document.getElementById("url").value = "";
       document.getElementById("resultado").textContent = "";
+      document.getElementById("poster").src = "";
+      document.getElementById("peliculas").innerHTML = '<option value="">-- Selecciona una película --</option>';
+    }
+
+    function copiar() {
+      const texto = document.getElementById("resultado").textContent;
+      navigator.clipboard.writeText(texto).then(() => {
+        alert("Resultado copiado al portapapeles.");
+      });
     }
   </script>
 </body>
