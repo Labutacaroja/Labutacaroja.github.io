@@ -49,6 +49,22 @@
       word-wrap: break-word;
       font-size: 14px;
     }
+    img {
+      margin-top: 10px;
+      max-width: 300px;
+      border-radius: 10px;
+    }
+    #selectorPeliculas div {
+      display: inline-block;
+      margin: 10px;
+      cursor: pointer;
+      text-align: center;
+      width: 140px;
+    }
+    #selectorPeliculas img {
+      width: 120px;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
@@ -57,12 +73,14 @@
   <input type="text" id="titulo" placeholder="Ej: ¿Dónde está mamá (2021)"><br>
   <label for="url">URL:</label><br>
   <input type="text" id="url" placeholder="Ej: https://ejemplo.com/video.mp4"><br>
+  <div id="selectorPeliculas" style="display:none;"></div>
   <div class="button-container">
     <button onclick="buscarPelicula()">Buscar</button>
     <button onclick="limpiarCampos()">Limpiar campos</button>
   </div>
   <h2>Resultado:</h2>
   <pre id="resultado"></pre><br>
+  <img id="poster" src="" alt="Poster" style="display:none;">
   <button onclick="copiarAlPortapapeles()">Copiar resultados</button>
 
   <script>
@@ -113,43 +131,63 @@
         return;
       }
 
-      let final_title = original_title;
-      let found_year = "N/A";
-      let found_overview = "Sinopsis no disponible";
-      let closest_year = null;
-      for (let movie of data.results) {
-        let year = movie.release_date ? movie.release_date.split("-")[0] : "N/A";
-        if (year === expected_year) {
-          final_title = movie.title;
-          found_year = year;
-          found_overview = movie.overview || found_overview;
-          break;
-        } else if (!closest_year || Math.abs(year - expected_year) < Math.abs(closest_year - expected_year)) {
-          closest_year = year;
-          final_title = movie.title;
-          found_overview = movie.overview || found_overview;
-        }
+      if (!expected_year) {
+        let container = document.getElementById("selectorPeliculas");
+        container.innerHTML = "";
+        data.results.forEach((movie) => {
+          let year = movie.release_date ? movie.release_date.split("-")[0] : "N/A";
+          let poster = movie.poster_path ? `https://image.tmdb.org/t/p/w200${movie.poster_path}` : "";
+          let card = document.createElement("div");
+          card.innerHTML = `
+            <img src="${poster}" alt="Poster"><br>
+            <strong>${movie.title}</strong><br>
+            <small>(${year})</small>
+          `;
+          card.onclick = () => mostrarResultado([movie], urlInput, year);
+          container.appendChild(card);
+        });
+        container.style.display = "block";
+        return;
       }
-      if (found_year === "N/A" && closest_year) {
-        found_year = closest_year + "!";
-      }
+
+      mostrarResultado(data.results, urlInput, expected_year);
+    }
+
+    function mostrarResultado(movies, urlInput, expected_year) {
+      let movie = movies[0];
+      let final_title = movie.title;
+      let found_year = expected_year;
+      let found_overview = movie.overview || "Sinopsis no disponible";
+      let poster_path = movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : "";
 
       if (found_overview.length > 570) {
         found_overview = found_overview.substring(0, 567) + "...";
       }
 
       let formattedTitle = final_title.replace(/\s/g, "_") + `(${found_year})`;
-
       let resultadoTexto = `📂 Titulo : \`${final_title} (${found_year})\`\n\n`;
       resultadoTexto += `${found_overview}\n\n`;
-      resultadoTexto += `http://labutacaroja.github.io/?video=${urlInput}` + `&title=${formattedTitle}`;
+      resultadoTexto += `http://labutacaroja.github.io/?video=${urlInput}&title=${formattedTitle}`;
+
       document.getElementById("resultado").innerText = resultadoTexto;
+
+      let poster = document.getElementById("poster");
+      if (poster_path) {
+        poster.src = poster_path;
+        poster.style.display = "block";
+      } else {
+        poster.style.display = "none";
+      }
+
+      document.getElementById("selectorPeliculas").style.display = "none";
     }
 
     function limpiarCampos() {
       document.getElementById("titulo").value = "";
       document.getElementById("url").value = "";
       document.getElementById("resultado").innerText = "";
+      document.getElementById("poster").style.display = "none";
+      document.getElementById("selectorPeliculas").style.display = "none";
     }
 
     function copiarAlPortapapeles() {
