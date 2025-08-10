@@ -69,9 +69,11 @@
 </head>
 <body>
   <h1>Buscador de Películas TMDb</h1>
-  <label for="titulo">Título (Año):</label><br>
-  <input type="text" id="titulo" placeholder="Ej: ¿Dónde está mamá (2021)"><br>
-  <label for="url">URL:</label><br>
+  <label for="titulo">Título:</label><br>
+  <input type="text" id="titulo" placeholder="Ej: La ciudad de la alegría"><br>
+  <label for="anio">Año (opcional):</label><br>
+  <input type="text" id="anio" placeholder="Ej: 1992"><br>
+  <label for="url">URL (opcional):</label><br>
   <input type="text" id="url" placeholder="Ej: https://ejemplo.com/video.mp4"><br>
   <div id="selectorPeliculas" style="display:none;"></div>
   <div class="button-container">
@@ -109,21 +111,21 @@
 
     async function buscarPelicula() {
       let tituloInput = document.getElementById("titulo").value.trim();
+      let anioInput = document.getElementById("anio").value.trim();
       let urlInput = document.getElementById("url").value.trim();
-      if (!tituloInput || !urlInput) {
-        return alert('Debes rellenar ambos campos.');
+
+      if (!tituloInput) {
+        return alert('Debes introducir al menos el título.');
       }
 
-      urlInput = await procesarUrlInteligente(urlInput);
-
-      let match = tituloInput.match(/^(.*?)\s*\((\d{4})\)$/);
-      let original_title = match ? match[1].trim() : tituloInput;
-      let expected_year = match ? match[2] : null;
+      if (urlInput) {
+        urlInput = await procesarUrlInteligente(urlInput);
+      }
 
       const api_key = "d336c933823098e7d4f5221b2eb3d768";
       let resp = await fetch(
         `https://api.themoviedb.org/3/search/movie?api_key=${api_key}` +
-        `&query=${encodeURIComponent(original_title)}&language=es`
+        `&query=${encodeURIComponent(tituloInput)}&language=es`
       );
       let data = await resp.json();
       if (!data.results.length) {
@@ -131,7 +133,7 @@
         return;
       }
 
-      if (!expected_year) {
+      if (!anioInput) {
         let container = document.getElementById("selectorPeliculas");
         container.innerHTML = "";
         data.results.forEach((movie) => {
@@ -150,13 +152,16 @@
         return;
       }
 
-      mostrarResultado(data.results, urlInput, expected_year);
+      let filtradas = data.results.filter(m => m.release_date && m.release_date.startsWith(anioInput));
+      if (!filtradas.length) filtradas = [data.results[0]];
+
+      mostrarResultado(filtradas, urlInput, anioInput);
     }
 
-    function mostrarResultado(movies, urlInput, expected_year) {
+    function mostrarResultado(movies, urlInput, anioInput) {
       let movie = movies[0];
       let final_title = movie.title;
-      let found_year = expected_year;
+      let found_year = anioInput || (movie.release_date ? movie.release_date.split("-")[0] : "N/A");
       let found_overview = movie.overview || "Sinopsis no disponible";
       let poster_path = movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : "";
 
@@ -167,7 +172,10 @@
       let formattedTitle = final_title.replace(/\s/g, "_") + `(${found_year})`;
       let resultadoTexto = `📂 Titulo : \`${final_title} (${found_year})\`\n\n`;
       resultadoTexto += `${found_overview}\n\n`;
-      resultadoTexto += `http://labutacaroja.github.io/?video=${urlInput}&title=${formattedTitle}`;
+
+      if (urlInput) {
+        resultadoTexto += `http://labutacaroja.github.io/?video=${urlInput}&title=${formattedTitle}`;
+      }
 
       document.getElementById("resultado").innerText = resultadoTexto;
 
@@ -184,6 +192,7 @@
 
     function limpiarCampos() {
       document.getElementById("titulo").value = "";
+      document.getElementById("anio").value = "";
       document.getElementById("url").value = "";
       document.getElementById("resultado").innerText = "";
       document.getElementById("poster").style.display = "none";
