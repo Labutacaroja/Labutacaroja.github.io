@@ -49,16 +49,34 @@
       word-wrap: break-word;
       font-size: 14px;
     }
+    img {
+      margin-top: 10px;
+      max-width: 300px;
+      border-radius: 10px;
+    }
+    #selectorPeliculas div {
+      display: inline-block;
+      margin: 10px;
+      cursor: pointer;
+      text-align: center;
+      width: 140px;
+    }
+    #selectorPeliculas img {
+      width: 120px;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
   <h1>Buscador de Películas TMDb</h1>
+  <label for="titulo">Título:</label><br>
+  <input type="text" id="titulo" placeholder="Ej: La ciudad de la alegría"><br>
+  <label for="anio">Año (opcional):</label><br>
+  <input type="text" id="anio" placeholder="Ej: 1992"><br>
+  <label for="url">URL (opcional):</label><br>
+  <input type="text" id="url" placeholder="Ej: https://filetolink.com/download/1234/video.mkv"><br>
 
-  <label for="titulo">Título (Año):</label><br>
-  <input type="text" id="titulo" placeholder="Ej: ¿Dónde está mamá (2021)"><br>
-
-  <label for="url">URL:</label><br>
-  <input type="text" id="url" placeholder="Ej: https://ejemplo.com/video.mp4"><br>
+  <div id="selectorPeliculas" style="display:none;"></div>
 
   <div class="button-container">
     <button onclick="buscarPelicula()">Buscar</button>
@@ -67,54 +85,70 @@
 
   <h2>Resultado:</h2>
   <pre id="resultado"></pre><br>
+  <img id="poster" src="" alt="Poster" style="display:none;">
+
   <button onclick="copiarAlPortapapeles()">Copiar resultados</button>
 
   <script>
     /**
-     * Si la URL es tipo stream.lcubots.news, la pide via proxy y extrae
-     * la real de streamapi.mrfooll.xyz; si no, devuelve la URL original.
+     * Procesa la URL según su tipo:
+     * - Resuelve stream.lcubots.news vía proxy
+     * - Limpia enlaces filetolink eliminando "/download/<ID>/<archivo>"
      */
-    async function resolveStreamUrl(inputUrl) {
-      const pattern = /^https:\/\/stream\.lcubots\.news\/V1\/watch\/[A-Za-z0-9]+$/;
-      if (!pattern.test(inputUrl)) {
-        return inputUrl;
+    async function procesarUrlInteligente(url) {
+      // Caso stream.lcubots.news
+      const streamPattern = /^https:\/\/stream\.lcubots\.news\/V1\/watch\/[A-Za-z0-9]+$/;
+      if (streamPattern.test(url)) {
+        const proxy  = 'https://api.allorigins.win/raw?url=';
+        const target = proxy + encodeURIComponent(url);
+        try {
+          const resp = await fetch(target);
+          const html = await resp.text();
+          const match = html.match(/https:\/\/streamapi\.mrfooll\.xyz\/[A-Za-z0-9_-]+/);
+          return match ? match[0] : url;
+        } catch (e) {
+          console.warn('No se pudo resolver la URL de StreamAPI:', e);
+          return url;
+        }
       }
 
-      const proxy = 'https://api.allorigins.win/raw?url=';
-      const target = proxy + encodeURIComponent(inputUrl);
-
-      try {
-        const resp = await fetch(target);
-        const html = await resp.text();
-        const match = html.match(/https:\/\/streamapi\.mrfooll\.xyz\/[A-Za-z0-9_-]+/);
-        return match ? match[0] : inputUrl;
-      } catch (e) {
-        console.warn('No se pudo resolver la URL de StreamAPI:', e);
-        return inputUrl;
+      // Caso filetolink: elimina "/download/<ID>/<archivo>"
+      if (url.startsWith("https://filetolink")) {
+        try {
+          const u     = new URL(url);
+          const parts = u.pathname.split("/");
+          // parts = ["", "download", "87294", "archivo.ext"]
+          if (parts.length >= 4 && parts[1] === "download") {
+            u.pathname = `/${parts[2]}/`;
+            return u.origin + u.pathname + u.search;
+          }
+        } catch (e) {
+          console.warn("URL inválida:", e);
+        }
       }
+
+      // Por defecto, devuelve la URL sin cambios
+      return url;
     }
 
     async function buscarPelicula() {
       let tituloInput = document.getElementById("titulo").value.trim();
+      let anioInput   = document.getElementById("anio").value.trim();
       let urlInput    = document.getElementById("url").value.trim();
 
-      if (!tituloInput || !urlInput) {
-        return alert('Debes rellenar ambos campos.');
+      if (!tituloInput) {
+        alert('Debes introducir al menos el título.');
+        return;
       }
 
-      // 1) Si es enlace tipo stream.lcubots.news, lo resolvemos
-      urlInput = await resolveStreamUrl(urlInput);
+      if (urlInput) {
+        urlInput = await procesarUrlInteligente(urlInput);
+      }
 
-      // 2) Desglosar título y año
-      let match = tituloInput.match(/^(.*?)\s*\((\d{4})\)$/);
-      let original_title = match ? match[1].trim() : tituloInput;
-      let expected_year  = match ? match[2] : null;
-
-      // 3) Llamada a TMDb
       const api_key = "d336c933823098e7d4f5221b2eb3d768";
       let resp = await fetch(
-        `https://api.themoviedb.org/3/search/movie?api_key=${api_key}`
-        + `&query=${encodeURIComponent(original_title)}&language=es`
+        `https://api.themoviedb.org/3/search/movie?api_key=${api_key}` +
+        `&query=${encodeURIComponent(tituloInput)}&language=es`
       );
       let data = await resp.json();
 
@@ -123,52 +157,85 @@
         return;
       }
 
-      // 4) Buscar coincidencia de año
-      let final_title   = original_title;
-      let found_year    = "N/A";
-      let found_overview= "Sinopsis no disponible";
-      let closest_year  = null;
-
-      for (let movie of data.results) {
-        let year = movie.release_date
-                   ? movie.release_date.split("-")[0]
-                   : "N/A";
-        if (year === expected_year) {
-          final_title    = movie.title;
-          found_year     = year;
-          found_overview = movie.overview || found_overview;
-          break;
-        } else if (!closest_year || Math.abs(year - expected_year) < Math.abs(closest_year - expected_year)) {
-          closest_year   = year;
-          final_title    = movie.title;
-          found_overview = movie.overview || found_overview;
-        }
+      // Si no hay año, mostramos selector visual
+      if (!anioInput) {
+        let container = document.getElementById("selectorPeliculas");
+        container.innerHTML = "";
+        data.results.forEach(movie => {
+          let year   = movie.release_date ? movie.release_date.split("-")[0] : "N/A";
+          let poster = movie.poster_path
+            ? `https://image.tmdb.org/t/p/w200${movie.poster_path}`
+            : "";
+          let card = document.createElement("div");
+          card.innerHTML = `
+            <img src="${poster}" alt="Poster"><br>
+            <strong>${movie.title}</strong><br>
+            <small>(${year})</small>
+          `;
+          card.onclick = () => mostrarResultado([movie], urlInput, year);
+          container.appendChild(card);
+        });
+        container.style.display = "block";
+        return;
       }
 
-      if (found_year === "N/A" && closest_year) {
-        found_year = closest_year + "!";
-      }
+      // Filtrar por año si se especifica
+      let filtradas = data.results.filter(m =>
+        m.release_date && m.release_date.startsWith(anioInput)
+      );
+      if (!filtradas.length) filtradas = [data.results[0]];
 
-      // 5) Acortar sinopsis
+      mostrarResultado(filtradas, urlInput, anioInput);
+    }
+
+    function mostrarResultado(movies, urlInput, anioInput) {
+      let movie        = movies[0];
+      let final_title  = movie.title;
+      let found_year   = anioInput || (movie.release_date
+                        ? movie.release_date.split("-")[0]
+                        : "N/A");
+      let found_overview = movie.overview || "Sinopsis no disponible";
+      let poster_path    = movie.poster_path
+                        ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                        : "";
+
+      // Acortar sinopsis si es muy larga
       if (found_overview.length > 570) {
         found_overview = found_overview.substring(0, 567) + "...";
       }
 
+      // Formatear título para el query
       let formattedTitle = final_title.replace(/\s/g, "_") + `(${found_year})`;
+      let resultadoTexto = `📂 Titulo : \`${final_title} (${found_year})\`\n\n`
+                        + `${found_overview}\n\n`;
 
-      // 6) Montar texto resultado
-      let resultadoTexto  = `📂 Titulo :  \`${final_title} (${found_year})\`\n\n`;
-      resultadoTexto     += `${found_overview}\n\n`;
-      resultadoTexto     += `http://labutacaroja.github.io/?video=${urlInput}`
-                          + `&title=${formattedTitle}`;
+      if (urlInput) {
+        resultadoTexto += `http://labutacaroja.github.io/?video=${urlInput}`
+                       + `&title=${formattedTitle}`;
+      }
 
       document.getElementById("resultado").innerText = resultadoTexto;
+
+      // Mostrar póster si existe
+      let poster = document.getElementById("poster");
+      if (poster_path) {
+        poster.src = poster_path;
+        poster.style.display = "block";
+      } else {
+        poster.style.display = "none";
+      }
+
+      // Ocultar selector
+      document.getElementById("selectorPeliculas").style.display = "none";
     }
 
     function limpiarCampos() {
       document.getElementById("titulo").value = "";
-      document.getElementById("url").value = "";
+      document.getElementById("anio").value   = "";
+      document.getElementById("url").value    = "";
       document.getElementById("resultado").innerText = "";
+      document.getElementById("poster").style.display = "none";
+      document.getElementById("selectorPeliculas").style.display = "none";
     }
 
     function copiarAlPortapapeles() {
