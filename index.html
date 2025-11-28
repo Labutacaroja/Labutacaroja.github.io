@@ -145,7 +145,7 @@
               //  modifiedUrl = videoUrl.replace('https://', '');
             //}
             if (isChromeMobile && videoUrl.startsWith('https://')) {
-                modifiedUrl = videoUrl.substring('https://'.length);
+                modifiedUrl = videoUrl.substring('http://'.length);
             }
 
             window.location.href = `vlc://${modifiedUrl}`;
