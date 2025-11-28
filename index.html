@@ -141,9 +141,13 @@
         document.getElementById('vlc-button').addEventListener('click', function(event) {
             event.preventDefault();
             let modifiedUrl = videoUrl;
-            if (isChromeMobile) {
-                modifiedUrl = videoUrl.replace('https://', '');
+            //if (isChromeMobile) {
+              //  modifiedUrl = videoUrl.replace('https://', '');
+            //}
+            if (isChromeMobile && videoUrl.startsWith('https://')) {
+                modifiedUrl = videoUrl.substring('https://'.length);
             }
+
             window.location.href = `vlc://${modifiedUrl}`;
             this.style.backgroundColor = '#000';
         });
