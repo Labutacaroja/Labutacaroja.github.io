@@ -142,13 +142,17 @@
             event.preventDefault();
             let modifiedUrl = videoUrl;
             //if (isChromeMobile) {
-              //  modifiedUrl = videoUrl.replace('https://', '');
+            //    modifiedUrl = videoUrl.replace('https://', '');
             //}
-            if (isChromeMobile && videoUrl.startsWith('http://')) {
-                modifiedUrl = videoUrl.substring('http://'.length);
+            //if (isChromeMobile && videoUrl.startsWith('https://')) {
+            //    modifiedUrl = videoUrl.substring('https://'.length);
+            //}
+            if (modifiedUrl.startsWith('https://')) {
+                modifiedUrl = modifiedUrl.substring('https://'.length);
             }
-
-            window.location.href = `vlc://${modifiedUrl}`;
+            const vlcUrl = `vlc://${modifiedUrl}`;
+            this.href = vlcUrl;
+            window.location.href = vlcUrl; //`vlc://${modifiedUrl}`;
             this.style.backgroundColor = '#000';
         });
 
