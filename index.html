@@ -135,6 +135,11 @@
         const videoTitle = urlParams.get('title');
         
         const downloadBtn = document.getElementById('download-button');
+
+
+        document.getElementById('video-title').textContent = videoTitle;
+        document.getElementById('video-player').src = videoUrl;
+
         downloadBtn.addEventListener('click', async function (e) {
     e.preventDefault();
 
@@ -160,9 +165,7 @@
 });
 
 
-        document.getElementById('video-title').textContent = videoTitle;
-        document.getElementById('video-player').src = videoUrl;
-
+        
         // Detectar si es Chrome en un dispositivo móvil
         const isChromeMobile = /Chrome/.test(navigator.userAgent) && /Android|iPhone|iPad|iPod/.test(navigator.userAgent);
 
