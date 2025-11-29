@@ -127,8 +127,6 @@
     <div class="mobile-text">Dispositivos Móviles: Abre VLC y pega el enlace copiado en "Nuevo Flujo"</div>
     <div class="pc-text">Desde PC: Abre VLC y pulsa "ctrl+N , ctrl+V , ENTER"</div>
     <div class="pc-extension-text">(PC - Extensión "Abrir en VLC" recomendada para los navegadores Chrome, Edge, Opera y Firefox.)</div>
-    <div id="download-status" class="small-text"></div>
-
     <a href="https://webextension.org/listing/open-in-vlc.html?version=0.4.3&type=install" target="_blank" class="download-link">Descargar extensión pulsando aquí</a>
     
     <script>
@@ -138,37 +136,6 @@
         
         document.getElementById('video-title').textContent = videoTitle;
         document.getElementById('video-player').src = videoUrl;
-
-        const downloadBtn = document.getElementById('download-button');
-
-        const statusEl = document.getElementById('download-status');
-
-downloadBtn.addEventListener('click', function (e) {
-    e.preventDefault();
-
-    const filename = (videoTitle || 'video') + '.mp4';
-    statusEl.textContent = 'Descargando en segundo plano...';
-
-    if ('download' in HTMLAnchorElement.prototype) {
-        const a = document.createElement('a');
-        a.href = videoUrl;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-
-        // No hay evento fiable de fin, así que puedes limpiar el mensaje después de unos segundos
-        setTimeout(() => {
-            statusEl.textContent = '';
-        }, 5000);
-
-        return;
-    }
-
-    window.location.href = videoUrl;
-});
-
-
 
         
         // Detectar si es Chrome en un dispositivo móvil
