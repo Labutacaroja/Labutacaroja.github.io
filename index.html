@@ -109,6 +109,11 @@
         <source src="" type="video/mp4">
         Tu navegador no soporta el elemento de video.
     </video>
+    
+    <a href="#" id="download-button" class="button-dark">
+    Descargar vídeo
+    </a>
+
     <a href="#" class="button" id="vlc-button">
         <img src="https://cdn.icon-icons.com/icons2/3053/PNG/512/vlc_alt_macos_bigsur_icon_189582.png" alt="VLC Icon">
         Abrir con VLC
@@ -128,6 +133,32 @@
         const urlParams = new URLSearchParams(window.location.search);
         const videoUrl = urlParams.get('video');
         const videoTitle = urlParams.get('title');
+        
+        const downloadBtn = document.getElementById('download-button');
+        downloadBtn.addEventListener('click', async function (e) {
+    e.preventDefault();
+
+    const filename = (videoTitle || 'video') + '.mp4';
+
+    try {
+        const response = await fetch(videoUrl);
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+        // Fallback por si fetch falla
+        window.location.href = videoUrl;
+    }
+});
+
 
         document.getElementById('video-title').textContent = videoTitle;
         document.getElementById('video-player').src = videoUrl;
