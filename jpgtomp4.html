@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Descargar vídeo como MP4</title>
+    <style>
+        body {
+            background-color: #333;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #ff6600;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: none;
+            box-sizing: border-box;
+            margin-bottom: 12px;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 16px;
+            background-color: #ff6600;
+            color: #fff;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+        }
+        .button:disabled {
+            background-color: #777;
+            cursor: not-allowed;
+        }
+        .status {
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        .small {
+            font-size: 12px;
+            color: #ccc;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Descargar vídeo como MP4</h1>
+    <div class="container">
+        <label for="video-url">Pega aquí el enlace del vídeo (.jpg que en realidad es vídeo):</label>
+        <input type="text" id="video-url" placeholder="https://st7.ranoz.gg/zk4yUabk-Sprint%20Clasificaci%C3%B3n.jpg">
+
+        <label for="video-name">Nombre del archivo (sin extensión):</label>
+        <input type="text" id="video-name" placeholder="sprint">
+
+        <button id="download-btn" class="button">Descargar como MP4</button>
+
+        <div id="status" class="status"></div>
+        <div class="small">
+            Nota: en algunos navegadores móviles el nombre o la extensión pueden cambiar,
+            pero esta página intenta forzar que se guarde como .mp4 en la mayoría de dispositivos.
+        </div>
+    </div>
+
+    <script>
+        const urlInput = document.getElementById('video-url');
+        const nameInput = document.getElementById('video-name');
+        const downloadBtn = document.getElementById('download-btn');
+        const statusEl = document.getElementById('status');
+
+        async function downloadAsMp4(url, filename) {
+            try {
+                statusEl.textContent = 'Conectando...';
+                downloadBtn.disabled = true;
+
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error('Error al descargar: ' + response.status + ' ' + response.statusText);
+                }
+
+                const contentLength = response.headers.get('Content-Length');
+                const total = contentLength ? parseInt(contentLength, 10) : null;
+
+                // Si el navegador soporta streams, mostrar progreso aproximado
+                if (response.body && window.ReadableStream && total) {
+                    const reader = response.body.getReader();
+                    const chunks = [];
+                    let received = 0;
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        chunks.push(value);
+                        received += value.length;
+
+                        const percent = Math.round((received / total) * 100);
+                        statusEl.textContent = 'Descargando... ' + percent + '%';
+                    }
+
+                    const blob = new Blob(chunks, { type: 'video/mp4' });
+                    triggerDownload(blob, filename);
+                    statusEl.textContent = 'Descarga completada.';
+                } else {
+                    // Sin soporte de streams o sin Content-Length: descargar de una vez
+                    statusEl.textContent = 'Descargando...';
+                    const blob = await response.blob();
+                    const finalBlob = new Blob([blob], { type: 'video/mp4' });
+                    triggerDownload(finalBlob, filename);
+                    statusEl.textContent = 'Descarga completada.';
+                }
+            } catch (err) {
+                console.error(err);
+                statusEl.textContent = 'Error: ' + (err.message || 'No se pudo descargar el archivo.');
+            } finally {
+                downloadBtn.disabled = false;
+            }
+        }
+
+        function triggerDownload(blob, filename) {
+            const blobUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = blobUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(blobUrl);
+        }
+
+        downloadBtn.addEventListener('click', function () {
+            const url = urlInput.value.trim();
+            let name = nameInput.value.trim();
+
+            if (!url) {
+                statusEl.textContent = 'Por favor, pega un enlace.';
+                return;
+            }
+
+            if (!name) {
+                // intentar sacar un nombre básico de la URL
+                try {
+                    const u = new URL(url);
+                    const path = u.pathname.split('/').pop() || 'video';
+                    name = decodeURIComponent(path).split('.')[0] || 'video';
+                } catch (e) {
+                    name = 'video';
+                }
+            }
+
+            const filename = name + '.mp4';
+            statusEl.textContent = 'Preparando descarga...';
+            downloadAsMp4(url, filename);
+        });
+    </script>
+</body>
+</html>
