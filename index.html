@@ -127,6 +127,8 @@
     <div class="mobile-text">Dispositivos Móviles: Abre VLC y pega el enlace copiado en "Nuevo Flujo"</div>
     <div class="pc-text">Desde PC: Abre VLC y pulsa "ctrl+N , ctrl+V , ENTER"</div>
     <div class="pc-extension-text">(PC - Extensión "Abrir en VLC" recomendada para los navegadores Chrome, Edge, Opera y Firefox.)</div>
+    <div id="download-status" class="small-text"></div>
+
     <a href="https://webextension.org/listing/open-in-vlc.html?version=0.4.3&type=install" target="_blank" class="download-link">Descargar extensión pulsando aquí</a>
     
     <script>
@@ -134,35 +136,38 @@
         const videoUrl = urlParams.get('video');
         const videoTitle = urlParams.get('title');
         
-        const downloadBtn = document.getElementById('download-button');
-
-
         document.getElementById('video-title').textContent = videoTitle;
         document.getElementById('video-player').src = videoUrl;
 
-        downloadBtn.addEventListener('click', async function (e) {
+        const downloadBtn = document.getElementById('download-button');
+
+        const statusEl = document.getElementById('download-status');
+
+downloadBtn.addEventListener('click', function (e) {
     e.preventDefault();
 
     const filename = (videoTitle || 'video') + '.mp4';
+    statusEl.textContent = 'Descargando en segundo plano...';
 
-    try {
-        const response = await fetch(videoUrl);
-        const blob = await response.blob();
-        const blobUrl = URL.createObjectURL(blob);
-
+    if ('download' in HTMLAnchorElement.prototype) {
         const a = document.createElement('a');
-        a.href = blobUrl;
+        a.href = videoUrl;
         a.download = filename;
         document.body.appendChild(a);
         a.click();
         a.remove();
 
-        URL.revokeObjectURL(blobUrl);
-    } catch (err) {
-        // Fallback por si fetch falla
-        window.location.href = videoUrl;
+        // No hay evento fiable de fin, así que puedes limpiar el mensaje después de unos segundos
+        setTimeout(() => {
+            statusEl.textContent = '';
+        }, 5000);
+
+        return;
     }
+
+    window.location.href = videoUrl;
 });
+
 
 
         
