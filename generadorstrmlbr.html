@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Archivos .strm</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        textarea { width: 100%; height: 200px; margin-bottom: 10px; }
+        button { margin-right: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Generador de Archivos .strm</h1>
+    <p>Introduce una o más URLs (una por línea):</p>
+    <textarea id="inputUrls" placeholder="Pega las URLs aquí..."></textarea>
+    <button id="generateBtn">Generar y Descargar .strm</button>
+    <button id="clearBtn">Limpiar</button>
+
+    <script>
+        const prefix = "http://labutacaroja.github.io/?video=";
+
+        function processTitle(title) {
+            // Reemplazar _ por espacios
+            let processed = title.replace(/_/g, ' ');
+            // Añadir espacio antes del (año), asumiendo que siempre hay (año) al final
+            processed = processed.replace(/\(/, ' (');
+            return processed;
+        }
+
+        function generateStrm(url) {
+            // Eliminar el prefijo
+            if (!url.startsWith(prefix)) {
+                alert("URL inválida: no comienza con el prefijo esperado.");
+                return;
+            }
+            const content = url.substring(prefix.length);
+
+            // Extraer el title de la URL para el nombre del archivo
+            const titleMatch = content.match(/&title=([^&]+)$/);
+            if (!titleMatch) {
+                alert("No se pudo extraer el title de la URL.");
+                return;
+            }
+            const rawTitle = titleMatch[1];
+            const fileName = processTitle(rawTitle) + ".strm";
+
+            // Crear el archivo .strm
+            const blob = new Blob([content], { type: 'text/plain' });
+            const downloadUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(downloadUrl);
+        }
+
+        document.getElementById('generateBtn').addEventListener('click', () => {
+            const input = document.getElementById('inputUrls').value.trim();
+            if (!input) {
+                alert("Introduce al menos una URL.");
+                return;
+            }
+            const urls = input.split('\n').map(u => u.trim()).filter(u => u);
+            urls.forEach(generateStrm);
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            document.getElementById('inputUrls').value = '';
+        });
+    </script>
+</body>
+</html>
