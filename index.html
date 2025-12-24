@@ -104,9 +104,7 @@
     <header>
         <h1>La Butaca Roja</h1>
     </header>
-
     <div class="title" id="video-title"></div>
-
     <video id="video-player" controls>
         <source src="" type="video/mp4">
         Tu navegador no soporta el elemento de video.
@@ -117,98 +115,58 @@
         Abrir con VLC
     </a>
     <div class="small-text">(Dispositivos móviles)</div>
-
     <hr>
-
-    <div class="important-text">
-        <span>IMPORTANTE:</span>
-        <span class="orange-text">Si no abre VLC pulsar el botón "Copiar Enlace y Pegar en VLC".</span>
-    </div>
-
+    <div class="important-text"><span>IMPORTANTE:</span> <span class="orange-text">Si no abre VLC pulsar el botón "Copiar Enlace y Pegar en VLC".</span></div>
     <a href="#" class="button-dark" id="copy-link-button">
         Copiar Enlace y Pegar en VLC
     </a>
-
-    <div class="mobile-text">
-        Dispositivos Móviles: Abre VLC y pega el enlace copiado en "Nuevo Flujo"
-    </div>
-    <div class="pc-text">
-        Desde PC: Abre VLC y pulsa "ctrl+N , ctrl+V , ENTER"
-    </div>
-    <div class="pc-extension-text">
-        (PC - Extensión "Abrir en VLC" recomendada para los navegadores Chrome, Edge, Opera y Firefox.)
-    </div>
-
-    <a href="https://webextension.org/listing/open-in-vlc.html?version=0.4.3&type=install"
-       target="_blank" class="download-link">
-        Descargar extensión pulsando aquí
-    </a>
-
+    <div class="mobile-text">Dispositivos Móviles: Abre VLC y pega el enlace copiado en "Nuevo Flujo"</div>
+    <div class="pc-text">Desde PC: Abre VLC y pulsa "ctrl+N , ctrl+V , ENTER"</div>
+    <div class="pc-extension-text">(PC - Extensión "Abrir en VLC" recomendada para los navegadores Chrome, Edge, Opera y Firefox.)</div>
+    <a href="https://webextension.org/listing/open-in-vlc.html?version=0.4.3&type=install" target="_blank" class="download-link">Descargar extensión pulsando aquí</a>
     <a href="https://labutacaroja.github.io/jpgtomp4" class="button">
-        Descargar en MP4
-    </a>
+    Descargar en MP4
+</a>
 
     <script>
-        // IMPORTANTE:
-        // Cuando llames a esta página, genera la URL así (ejemplo):
-        // const rawVideoUrl = 'http://176.57.188.45:9000/stream/85137?hash=c0743a&title=The_Surrender_(2025).mkv';
-        // const pageUrl = 'https://labutacaroja.github.io/?video='
-        //     + encodeURIComponent(rawVideoUrl)
-        //     + '&title=' + encodeURIComponent('The Surrender (2025)');
-        // encodeURIComponent es la forma correcta de pasar una URL como parámetro de otra URL.[web:19][web:23]
-
         const urlParams = new URLSearchParams(window.location.search);
         const videoUrl = urlParams.get('video');
-        const videoTitle = urlParams.get('title') || 'Sin título';
-
-        // Mostrar título
+        const videoTitle = urlParams.get('title');
+        
         document.getElementById('video-title').textContent = videoTitle;
+        document.getElementById('video-player').src = videoUrl;
 
-        // Poner la URL del vídeo en el reproductor
-        const videoPlayer = document.getElementById('video-player');
-        if (videoUrl) {
-            videoPlayer.src = videoUrl;
-        }
+        
+        // Detectar si es Chrome en un dispositivo móvil
+        const isChromeMobile = /Chrome/.test(navigator.userAgent) && /Android|iPhone|iPad|iPod/.test(navigator.userAgent);
 
-        const vlcButton = document.getElementById('vlc-button');
-        const copyButton = document.getElementById('copy-link-button');
+        document.getElementById('vlc-button').href = `vlc://${videoUrl}`;
+        document.getElementById('copy-link-button').href = `${videoUrl}`;
 
-        // Enlace base por defecto
-        if (videoUrl) {
-            vlcButton.href = `vlc://${videoUrl}`;
-            copyButton.href = videoUrl;
-        }
-
-        vlcButton.addEventListener('click', function (event) {
+        document.getElementById('vlc-button').addEventListener('click', function(event) {
             event.preventDefault();
-            if (!videoUrl) return;
-
             let modifiedUrl = videoUrl;
-
-            // Si tu handler vlc:// espera sin esquema, se lo quitamos
+            //if (isChromeMobile) {
+            //    modifiedUrl = videoUrl.replace('https://', '');
+            //}
+            //if (isChromeMobile && videoUrl.startsWith('https://')) {
+            //    modifiedUrl = videoUrl.substring('https://'.length);
+            //}
             if (modifiedUrl.startsWith('https://')) {
                 modifiedUrl = modifiedUrl.substring('https://'.length);
-            } else if (modifiedUrl.startsWith('http://')) {
-                modifiedUrl = modifiedUrl.substring('http://'.length);
             }
-
             const vlcUrl = `vlc://${modifiedUrl}`;
             this.href = vlcUrl;
-            window.location.href = vlcUrl;
+            window.location.href = vlcUrl; //`vlc://${modifiedUrl}`;
             this.style.backgroundColor = '#000';
         });
 
-        copyButton.addEventListener('click', function (event) {
+        document.getElementById('copy-link-button').addEventListener('click', function(event) {
             event.preventDefault();
-            if (!videoUrl) return;
-
-            // navigator.clipboard es el método moderno para copiar texto al portapapeles.[web:22][web:25]
             navigator.clipboard.writeText(videoUrl).then(() => {
                 this.style.backgroundColor = '#fff';
                 this.style.color = '#cc5500';
                 this.textContent = 'Enlace copiado';
-            }).catch(() => {
-                alert('No se pudo copiar automáticamente, copia el enlace manualmente: ' + videoUrl);
             });
         });
     </script>
