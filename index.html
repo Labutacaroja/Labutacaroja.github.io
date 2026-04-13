@@ -130,59 +130,57 @@
 
 <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const videoUrl = urlParams.get('video');
-    const videoTitle = urlParams.get('title');
+    let videoUrl = urlParams.get('video');  // ej: https://www.streamvaultpro.cc/0:/dl/...
 
-    document.getElementById('video-title').textContent = videoTitle || '';
+    const videoTitle = urlParams.get('title') || '';
+
+    // Mostrar título y reproducir en el player HTML5
+    document.getElementById('video-title').textContent = videoTitle;
     document.getElementById('video-player').src = videoUrl;
 
-    // Detectar si es Chrome en un dispositivo móvil
-    const isChromeMobile =
-        /Chrome/.test(navigator.userAgent) &&
-        /Android|iPhone|iPad|iPod/.test(navigator.userAgent);
-
-    const vlcButton = document.getElementById('vlc-button');
+    const vlcButton  = document.getElementById('vlc-button');
     const copyButton = document.getElementById('copy-link-button');
 
-    // HREFs base:
-    // - ABRIR VLC: esquema vlc:// (como antes)
-    // - COPIAR: URL https:// completa (directa)
-    vlcButton.href = `vlc://${videoUrl}`;
+    // 1) BOTÓN COPIAR ENLACE: SIEMPRE la URL correcta tal cual
     copyButton.href = videoUrl;
-
-    // BOTÓN ABRIR CON VLC
-    vlcButton.addEventListener('click', function (event) {
-        event.preventDefault();
-
-        let modifiedUrl = videoUrl;
-
-        // REGLA CLAVE:
-        // En Chrome móvil, quitamos 'https://' para evitar la mutilación de los ':'
-        // y dejarlo como 'www.streamvaultpro.cc/0:/dl/...'
-        if (isChromeMobile && modifiedUrl.startsWith('https://')) {
-            modifiedUrl = modifiedUrl.substring('https://'.length);
-        }
-
-        // En otros navegadores, mandamos la URL completa tal cual
-        const vlcUrl = isChromeMobile
-            ? `vlc://${modifiedUrl}`       // ej: vlc://www.streamvaultpro.cc/0:/dl/...
-            : `vlc://${videoUrl}`;        // ej: vlc://https://www.streamvaultpro.cc/...
-
-        this.href = vlcUrl;
-        window.location.href = vlcUrl;
-        this.style.backgroundColor = '#000';
-    });
-
-    // BOTÓN COPIAR ENLACE Y PEGAR EN VLC
-    copyButton.addEventListener('click', function (event) {
-        event.preventDefault();
-
-        // SIEMPRE copiamos la URL completa (https://www...)
+    copyButton.addEventListener('click', function (e) {
+        e.preventDefault();
         navigator.clipboard.writeText(videoUrl).then(() => {
             this.style.backgroundColor = '#fff';
             this.style.color = '#cc5500';
             this.textContent = 'Enlace copiado';
         });
+    });
+
+    // 2) BOTÓN ABRIR CON VLC
+    vlcButton.addEventListener('click', function (e) {
+        e.preventDefault();
+
+        let urlForVlc = videoUrl;
+
+        // Si en algún punto el navegador ha \"comido\" los dos puntos (https//),
+        // lo corregimos ANTES de montar vlc://
+        if (urlForVlc.startsWith('https//')) {
+            urlForVlc = urlForVlc.replace('https//', 'https://');
+        }
+
+        // Si por lo que sea llega sin esquema pero empieza por www., lo completamos
+        if (urlForVlc.startsWith('www.')) {
+            urlForVlc = 'https://' + urlForVlc;
+        }
+
+        // Opcional: puedes ver por consola qué se está enviando a VLC
+        // console.log('Enviando a VLC:', 'vlc://' + urlForVlc);
+
+        const vlcUrl = 'vlc://' + urlForVlc;
+
+        // Actualizamos el href del botón (por si el usuario mantiene pulsado, etc.)
+        this.href = vlcUrl;
+
+        // Lanzamos VLC
+        window.location.href = vlcUrl;
+
+        this.style.backgroundColor = '#000';
     });
 </script>
 </body>
