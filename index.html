@@ -133,25 +133,37 @@
     const videoUrl = urlParams.get('video');
     const videoTitle = urlParams.get('title');
 
+    // Título y reproductor
     document.getElementById('video-title').textContent = videoTitle;
     document.getElementById('video-player').src = videoUrl;
 
-    // Enlace "normal" por si el usuario mantiene pulsado y copia
-    document.getElementById('vlc-button').href = videoUrl;
+    // Enlaces base: SIEMPRE https://...
+    document.getElementById('vlc-button').href = `vlc://${videoUrl}`;
+    document.getElementById('copy-link-button').href = videoUrl;
 
+    // ABRIR CON VLC
     document.getElementById('vlc-button').addEventListener('click', function(event) {
         event.preventDefault();
 
-        // Construimos intent para VLC en Android
-        const intentUrl =
-            `intent:${videoUrl}` +
-            `#Intent;scheme=https;package=org.videolan.vlc;end`;
+        // NO tocamos la URL, la dejamos completa con https://
+        const vlcUrl = `vlc://${videoUrl}`;
 
-        // Intentamos abrir VLC
-        window.location.href = intentUrl;
+        // Lanzamos VLC como tú lo tenías
+        window.location.href = vlcUrl;
 
-        // Cambio visual opcional
         this.style.backgroundColor = '#000';
+    });
+
+    // COPIAR ENLACE Y PEGAR EN VLC
+    document.getElementById('copy-link-button').addEventListener('click', function(event) {
+        event.preventDefault();
+
+        // Copia exactamente la URL del vídeo (https://www....)
+        navigator.clipboard.writeText(videoUrl).then(() => {
+            this.style.backgroundColor = '#fff';
+            this.style.color = '#cc5500';
+            this.textContent = 'Enlace copiado';
+        });
     });
 </script>
 </body>
