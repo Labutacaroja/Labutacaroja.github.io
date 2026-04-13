@@ -140,6 +140,13 @@
     const vlcButton  = document.getElementById('vlc-button');
     const copyButton = document.getElementById('copy-link-button');
 
+    // Normalizar por si llegara mal (seguridad extra)
+    if (videoUrl.startsWith('https//')) {
+        videoUrl = videoUrl.replace('https//', 'https://');
+    } else if (videoUrl.startsWith('www.')) {
+        videoUrl = 'https://' + videoUrl;
+    }
+
     // BOTÓN COPIAR ENLACE: SIEMPRE la URL limpia https://www...
     copyButton.href = videoUrl;
     copyButton.addEventListener('click', function (e) {
@@ -151,25 +158,15 @@
         });
     });
 
-    // BOTÓN ABRIR CON VLC: URL codificada para que Chrome/Firefox no toquen los ':'
+    // BOTÓN ABRIR CON VLC
     vlcButton.addEventListener('click', function (e) {
         e.preventDefault();
 
-        // Normalización por si llegara mal
-        if (videoUrl.startsWith('https//')) {
-            videoUrl = videoUrl.replace('https//', 'https://');
-        } else if (videoUrl.startsWith('www.')) {
-            videoUrl = 'https://' + videoUrl;
-        }
+        // Truco sencillo: abrimos directamente la URL https://
+        // El sistema (Android/iOS/PC) decide qué app la maneja; si VLC está asociada,
+        // se abrirá con VLC, y si no, el usuario la podrá seleccionar.
+        window.location.href = videoUrl;
 
-        const encoded = encodeURIComponent(videoUrl);
-        const vlcUrl  = 'vlc://' + encoded;  // vlc://https%3A%2F%2Fwww.streamvaultpro.cc%2F0%3A%2Fdl%2F...
-
-        // Opcional: ver qué sale exactamente
-        // console.log('VLC URL:', vlcUrl);
-
-        this.href = vlcUrl;
-        window.location.href = vlcUrl;
         this.style.backgroundColor = '#000';
     });
 </script>
