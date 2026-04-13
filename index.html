@@ -130,35 +130,54 @@
 
 <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const videoUrl = urlParams.get('video');
-    const videoTitle = urlParams.get('title');
+    let videoUrl = urlParams.get('video');   // viene como https://www.streamvaultpro.cc/...
 
-    // Título y reproductor
+    const videoTitle = urlParams.get('title') || '';
+
+    // Título y player
     document.getElementById('video-title').textContent = videoTitle;
     document.getElementById('video-player').src = videoUrl;
 
-    // Enlaces base: SIEMPRE https://...
-    document.getElementById('vlc-button').href = `vlc://${videoUrl}`;
-    document.getElementById('copy-link-button').href = videoUrl;
+    // --- BOTÓN ABRIR CON VLC ---
 
-    // ABRIR CON VLC
-    document.getElementById('vlc-button').addEventListener('click', function(event) {
-        event.preventDefault();
+    const vlcBtn = document.getElementById('vlc-button');
 
-        // NO tocamos la URL, la dejamos completa con https://
-        const vlcUrl = `vlc://${videoUrl}`;
+    // 1) href “visible” por si el usuario copia / mantener pulsado
+    vlcBtn.href = videoUrl;   // SIEMPRE https://www...
 
-        // Lanzamos VLC como tú lo tenías
-        window.location.href = vlcUrl;
+    vlcBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+
+        // En Android Chrome: intentar abrir VLC con la URL https://
+        // (VLC la abre como flujo de red sin problema)
+        const android = /Android/i.test(navigator.userAgent);
+        const chrome  = /Chrome/i.test(navigator.userAgent);
+
+        if (android && chrome) {
+            // Intent para VLC, manteniendo la URL https:// íntegra
+            const intentUrl =
+                'intent:' + videoUrl +
+                '#Intent;scheme=https;package=org.videolan.vlc;end;';
+
+            window.location.href = intentUrl;
+        } else {
+            // Otros navegadores / escritorio: usa directamente vlc://https://...
+            const vlcUrl = 'vlc://' + videoUrl; // -> vlc://https://www...
+            window.location.href = vlcUrl;
+        }
 
         this.style.backgroundColor = '#000';
     });
 
-    // COPIAR ENLACE Y PEGAR EN VLC
-    document.getElementById('copy-link-button').addEventListener('click', function(event) {
-        event.preventDefault();
+    // --- BOTÓN COPIAR ENLACE Y PEGAR EN VLC ---
 
-        // Copia exactamente la URL del vídeo (https://www....)
+    const copyBtn = document.getElementById('copy-link-button');
+    copyBtn.href = videoUrl;  // por si el navegador muestra el enlace
+
+    copyBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+
+        // Copiamos EXACTAMENTE la URL del vídeo (https://www...)
         navigator.clipboard.writeText(videoUrl).then(() => {
             this.style.backgroundColor = '#fff';
             this.style.color = '#cc5500';
