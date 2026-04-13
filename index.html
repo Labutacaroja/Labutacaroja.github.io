@@ -111,10 +111,10 @@
     </video>
 
     <a href="#" class="button" id="vlc-button">
-    <img src="https://cdn.icon-icons.com/icons2/3053/PNG/512/vlc_alt_macos_bigsur_icon_189582.png" alt="VLC Icon">
-    Abrir con VLC
-</a>
-    <div class="small-text">(Dispositivos móviles)</div>
+        <img src="https://cdn.icon-icons.com/icons2/3053/PNG/512/vlc_alt_macos_bigsur_icon_189582.png" alt="VLC Icon">
+        Abrir con VLC
+    </a>
+    <div class="small-text">(Dispositivos móviles, mantener pulsado y compartir con VLC u otro reproductor)</div>
     <hr>
     <div class="important-text"><span>IMPORTANTE:</span> <span class="orange-text">Si no abre VLC pulsar el botón "Copiar Enlace y Pegar en VLC".</span></div>
     <a href="#" class="button-dark" id="copy-link-button">
@@ -124,57 +124,49 @@
     <div class="pc-text">Desde PC: Abre VLC y pulsa "ctrl+N , ctrl+V , ENTER"</div>
     <div class="pc-extension-text">(PC - Extensión "Abrir en VLC" recomendada para los navegadores Chrome, Edge, Opera y Firefox.)</div>
     <a href="https://webextension.org/listing/open-in-vlc.html?version=0.4.3&type=install" target="_blank" class="download-link">Descargar extensión pulsando aquí</a>
-    <a href="https://labutacaroja.github.io/jpgtomp4" class="button">
-    Descargar en MP4
-</a>
 
-<script>
-    const urlParams = new URLSearchParams(window.location.search);
-    let videoUrl  = urlParams.get('video');   // https://www.streamvaultpro.cc/0:/dl/...
-    const videoTitle = urlParams.get('title') || '';
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        let videoUrl  = urlParams.get('video');   // https://www.streamvaultpro.cc/0:/dl/...
+        const videoTitle = urlParams.get('title') || '';
 
-    // Mostrar título y reproducir en el player
-    document.getElementById('video-title').textContent = videoTitle;
-    document.getElementById('video-player').src = videoUrl;
+        // Mostrar título y reproducir en el player
+        const titleEl = document.getElementById('video-title');
+        const videoEl = document.getElementById('video-player');
 
-    const vlcButton  = document.getElementById('vlc-button');
-    const copyButton = document.getElementById('copy-link-button');
+        titleEl.textContent = videoTitle;
+        videoEl.src = videoUrl;
 
-    // Normalizar por si llegara raro (seguro extra)
-    if (videoUrl.startsWith('https//')) {
-        videoUrl = videoUrl.replace('https//', 'https://');
-    } else if (videoUrl.startsWith('www.')) {
-        videoUrl = 'https://' + videoUrl;
-    }
+        const vlcButton  = document.getElementById('vlc-button');
+        const copyButton = document.getElementById('copy-link-button');
 
-    // --- BOTÓN COPIAR ENLACE: SIEMPRE URL DEL VÍDEO ---
-    copyButton.href = videoUrl;
-    copyButton.addEventListener('click', function (e) {
-        e.preventDefault();
-        navigator.clipboard.writeText(videoUrl).then(() => {
-            this.style.backgroundColor = '#fff';
-            this.style.color = '#cc5500';
-            this.textContent = 'Enlace copiado';
+        // Normalizar por si llegara raro (seguridad extra)
+        if (videoUrl && videoUrl.startsWith('https//')) {
+            videoUrl = videoUrl.replace('https//', 'https://');
+        } else if (videoUrl && videoUrl.startsWith('www.')) {
+            videoUrl = 'https://' + videoUrl;
+        }
+
+        // --- BOTÓN COPIAR ENLACE: SIEMPRE URL LIMPIA DEL VÍDEO ---
+        copyButton.href = videoUrl;
+        copyButton.addEventListener('click', function (e) {
+            e.preventDefault();
+            navigator.clipboard.writeText(videoUrl).then(() => {
+                this.style.backgroundColor = '#fff';
+                this.style.color = '#cc5500';
+                this.textContent = 'Enlace copiado';
+            });
         });
-    });
 
-    // --- BOTÓN ABRIR CON VLC ---
-    vlcButton.addEventListener('click', function (e) {
-        e.preventDefault();
-
-        // Codificamos la URL del vídeo para meterla en el query param
-        const encoded = encodeURIComponent(videoUrl);
-        // Formato que quieres: vlc://open?url=https://...
-        const vlcUrl  = encoded;
-
-        // Opcional para depurar:
-        // console.log('VLC URL:', vlcUrl);
-
-        this.href = vlcUrl;
-        window.location.href = vlcUrl;
-
-        this.style.backgroundColor = '#000';
-    });
-</script>
+        // --- BOTÓN ABRIR CON VLC: ENLACE LIMPIO DEL VÍDEO ---
+        vlcButton.href = videoUrl;
+        vlcButton.addEventListener('click', function (e) {
+            e.preventDefault();
+            // Abrimos directamente la URL del vídeo.
+            // En móviles, se puede mantener pulsado y "Compartir" con VLC.
+            window.location.href = videoUrl;
+            this.style.backgroundColor = '#000';
+        });
+    </script>
 </body>
 </html>
