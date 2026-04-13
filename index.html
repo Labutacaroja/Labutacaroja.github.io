@@ -133,14 +133,14 @@
     let videoUrl  = urlParams.get('video');   // https://www.streamvaultpro.cc/0:/dl/...
     const videoTitle = urlParams.get('title') || '';
 
-    // Mostrar título y reproducir en el player HTML5
+    // Mostrar título y reproducir en el player
     document.getElementById('video-title').textContent = videoTitle;
     document.getElementById('video-player').src = videoUrl;
 
     const vlcButton  = document.getElementById('vlc-button');
     const copyButton = document.getElementById('copy-link-button');
 
-    // Normalizar por si en algún momento llega mal
+    // Normalizar por si llegara raro (seguro extra)
     if (videoUrl.startsWith('https//')) {
         videoUrl = videoUrl.replace('https//', 'https://');
     } else if (videoUrl.startsWith('www.')) {
@@ -158,15 +158,20 @@
         });
     });
 
-    // --- BOTÓN ABRIR CON VLC (PLAN B) ---
-    vlcButton.href = 'vlc://' + videoUrl;  // enlace directo al vídeo
-
+    // --- BOTÓN ABRIR CON VLC ---
     vlcButton.addEventListener('click', function (e) {
         e.preventDefault();
 
-        // Intentar abrir directamente la URL del vídeo.
-        // Android decidirá si ofrece VLC o solo navegadores, según asociaciones del sistema.
-        window.location.href = videoUrl;
+        // Codificamos la URL del vídeo para meterla en el query param
+        const encoded = encodeURIComponent(videoUrl);
+        // Formato que quieres: vlc://open?url=https://...
+        const vlcUrl  = 'vlc://' + encoded;
+
+        // Opcional para depurar:
+        // console.log('VLC URL:', vlcUrl);
+
+        this.href = vlcUrl;
+        window.location.href = vlcUrl;
 
         this.style.backgroundColor = '#000';
     });
