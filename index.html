@@ -165,7 +165,7 @@
         // Codificamos la URL del vídeo para meterla en el query param
         const encoded = encodeURIComponent(videoUrl);
         // Formato que quieres: vlc://open?url=https://...
-        const vlcUrl  = 'vlc://' + encoded;
+        const vlcUrl  = encoded;
 
         // Opcional para depurar:
         // console.log('VLC URL:', vlcUrl);
