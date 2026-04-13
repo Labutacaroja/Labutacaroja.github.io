@@ -159,7 +159,7 @@
     });
 
     // --- BOTÓN ABRIR CON VLC (PLAN B) ---
-    vlcButton.href = videoUrl;  // enlace directo al vídeo
+    vlcButton.href = 'vlc://' + videoUrl;  // enlace directo al vídeo
 
     vlcButton.addEventListener('click', function (e) {
         e.preventDefault();
