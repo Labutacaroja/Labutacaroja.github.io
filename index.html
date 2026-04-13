@@ -160,21 +160,11 @@
 
     // --- BOTÓN ABRIR CON VLC ---
     vlcButton.addEventListener('click', function (e) {
-        e.preventDefault();
-
-        // Codificamos la URL del vídeo para meterla en el query param
-        const encoded = encodeURIComponent(videoUrl);
-        // Formato que quieres: vlc://open?url=https://...
-        const vlcUrl  = 'vlc://open?url=' + encoded;
-
-        // Opcional para depurar:
-        // console.log('VLC URL:', vlcUrl);
-
-        this.href = vlcUrl;
-        window.location.href = vlcUrl;
-
-        this.style.backgroundColor = '#000';
-    });
+    e.preventDefault();
+    this.href = videoUrl;      // enlace directo al vídeo
+    window.location.href = videoUrl;
+    this.style.backgroundColor = '#000';
+});
 </script>
 </body>
 </html>
