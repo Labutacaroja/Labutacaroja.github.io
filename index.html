@@ -130,18 +130,24 @@
 
 <script>
     const urlParams = new URLSearchParams(window.location.search);
-    let videoUrl = urlParams.get('video');  // ej: https://www.streamvaultpro.cc/0:/dl/...
+    let videoUrl = urlParams.get('video');  // debería ser https://www.streamvaultpro.cc/...
 
     const videoTitle = urlParams.get('title') || '';
 
-    // Mostrar título y reproducir en el player HTML5
     document.getElementById('video-title').textContent = videoTitle;
     document.getElementById('video-player').src = videoUrl;
 
     const vlcButton  = document.getElementById('vlc-button');
     const copyButton = document.getElementById('copy-link-button');
 
-    // 1) BOTÓN COPIAR ENLACE: SIEMPRE la URL correcta tal cual
+    // Normalización base: corregimos si viniera mal desde la URL
+    if (videoUrl.startsWith('https//')) {
+        videoUrl = videoUrl.replace('https//', 'https://');
+    } else if (videoUrl.startsWith('www.')) {
+        videoUrl = 'https://' + videoUrl;
+    }
+
+    // BOTÓN COPIAR ENLACE: siempre https:// completa
     copyButton.href = videoUrl;
     copyButton.addEventListener('click', function (e) {
         e.preventDefault();
@@ -152,33 +158,44 @@
         });
     });
 
-    // 2) BOTÓN ABRIR CON VLC
+    // BOTÓN ABRIR CON VLC
     vlcButton.addEventListener('click', function (e) {
         e.preventDefault();
 
+        // Aseguramos de nuevo que tenemos https:// correcto
         let urlForVlc = videoUrl;
 
-        // Si en algún punto el navegador ha \"comido\" los dos puntos (https//),
-        // lo corregimos ANTES de montar vlc://
         if (urlForVlc.startsWith('https//')) {
             urlForVlc = urlForVlc.replace('https//', 'https://');
         }
-
-        // Si por lo que sea llega sin esquema pero empieza por www., lo completamos
         if (urlForVlc.startsWith('www.')) {
             urlForVlc = 'https://' + urlForVlc;
         }
 
-        // Opcional: puedes ver por consola qué se está enviando a VLC
-        // console.log('Enviando a VLC:', 'vlc://' + urlForVlc);
+        // Primer intento: vlc://https://www...
+        const primary = 'vlc://' + urlForVlc;
 
-        const vlcUrl = 'vlc://' + urlForVlc;
+        // Segundo intento (por si algún navegador rompe los dos puntos):
+        // vlc://www... (quitando https://)
+        let fallback = urlForVlc;
+        if (fallback.startsWith('https://')) {
+            fallback = fallback.substring('https://'.length);
+        }
+        const secondary = 'vlc://' + fallback;
 
-        // Actualizamos el href del botón (por si el usuario mantiene pulsado, etc.)
-        this.href = vlcUrl;
+        // Prueba primaria
+        this.href = primary;
+        window.location.href = primary;
 
-        // Lanzamos VLC
-        window.location.href = vlcUrl;
+        // Pequeño delay y fallback opcional:
+        // si quieres forzar el fallback automáticamente (por ejemplo, porque ves
+        // que en un navegador concreto no funciona primary), descomenta esto:
+        /*
+        setTimeout(() => {
+            this.href = secondary;
+            window.location.href = secondary;
+        }, 800);
+        */
 
         this.style.backgroundColor = '#000';
     });
