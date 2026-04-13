@@ -133,14 +133,14 @@
     let videoUrl  = urlParams.get('video');   // https://www.streamvaultpro.cc/0:/dl/...
     const videoTitle = urlParams.get('title') || '';
 
-    // Mostrar título y reproducir en el player
+    // Mostrar título y reproducir en el player HTML5
     document.getElementById('video-title').textContent = videoTitle;
     document.getElementById('video-player').src = videoUrl;
 
     const vlcButton  = document.getElementById('vlc-button');
     const copyButton = document.getElementById('copy-link-button');
 
-    // Normalizar por si llegara raro (seguro extra)
+    // Normalizar por si en algún momento llega mal
     if (videoUrl.startsWith('https//')) {
         videoUrl = videoUrl.replace('https//', 'https://');
     } else if (videoUrl.startsWith('www.')) {
@@ -158,13 +158,18 @@
         });
     });
 
-    // --- BOTÓN ABRIR CON VLC ---
+    // --- BOTÓN ABRIR CON VLC (PLAN B) ---
+    vlcButton.href = videoUrl;  // enlace directo al vídeo
+
     vlcButton.addEventListener('click', function (e) {
-    e.preventDefault();
-    this.href = videoUrl;      // enlace directo al vídeo
-    window.location.href = videoUrl;
-    this.style.backgroundColor = '#000';
-});
+        e.preventDefault();
+
+        // Intentar abrir directamente la URL del vídeo.
+        // Android decidirá si ofrece VLC o solo navegadores, según asociaciones del sistema.
+        window.location.href = videoUrl;
+
+        this.style.backgroundColor = '#000';
+    });
 </script>
 </body>
 </html>
