@@ -111,9 +111,9 @@
     </video>
 
     <a href="#" class="button" id="vlc-button">
-        <img src="https://cdn.icon-icons.com/icons2/3053/PNG/512/vlc_alt_macos_bigsur_icon_189582.png" alt="VLC Icon">
-        Abrir con VLC
-    </a>
+    <img src="https://cdn.icon-icons.com/icons2/3053/PNG/512/vlc_alt_macos_bigsur_icon_189582.png" alt="VLC Icon">
+    Abrir con VLC
+</a>
     <div class="small-text">(Dispositivos móviles)</div>
     <hr>
     <div class="important-text"><span>IMPORTANTE:</span> <span class="orange-text">Si no abre VLC pulsar el botón "Copiar Enlace y Pegar en VLC".</span></div>
@@ -128,47 +128,31 @@
     Descargar en MP4
 </a>
 
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const videoUrl = urlParams.get('video');
-        const videoTitle = urlParams.get('title');
-        
-        document.getElementById('video-title').textContent = videoTitle;
-        document.getElementById('video-player').src = videoUrl;
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const videoUrl = urlParams.get('video');
+    const videoTitle = urlParams.get('title');
 
-        
-        // Detectar si es Chrome en un dispositivo móvil
-        const isChromeMobile = /Chrome/.test(navigator.userAgent) && /Android|iPhone|iPad|iPod/.test(navigator.userAgent);
+    document.getElementById('video-title').textContent = videoTitle;
+    document.getElementById('video-player').src = videoUrl;
 
-        document.getElementById('vlc-button').href = `vlc://${videoUrl}`;
-        document.getElementById('copy-link-button').href = `${videoUrl}`;
+    // Enlace "normal" por si el usuario mantiene pulsado y copia
+    document.getElementById('vlc-button').href = videoUrl;
 
-        document.getElementById('vlc-button').addEventListener('click', function(event) {
-            event.preventDefault();
-            let modifiedUrl = videoUrl;
-            //if (isChromeMobile) {
-            //    modifiedUrl = videoUrl.replace('https://', '');
-            //}
-            //if (isChromeMobile && videoUrl.startsWith('https://')) {
-            //    modifiedUrl = videoUrl.substring('https://'.length);
-            //}
-            if (modifiedUrl.startsWith('https://')) {
-                modifiedUrl = modifiedUrl.substring('https://'.length);
-            }
-            const vlcUrl = `vlc://${modifiedUrl}`;
-            this.href = vlcUrl;
-            window.location.href = vlcUrl; //`vlc://${modifiedUrl}`;
-            this.style.backgroundColor = '#000';
-        });
+    document.getElementById('vlc-button').addEventListener('click', function(event) {
+        event.preventDefault();
 
-        document.getElementById('copy-link-button').addEventListener('click', function(event) {
-            event.preventDefault();
-            navigator.clipboard.writeText(videoUrl).then(() => {
-                this.style.backgroundColor = '#fff';
-                this.style.color = '#cc5500';
-                this.textContent = 'Enlace copiado';
-            });
-        });
-    </script>
+        // Construimos intent para VLC en Android
+        const intentUrl =
+            `intent:${videoUrl}` +
+            `#Intent;scheme=https;package=org.videolan.vlc;end`;
+
+        // Intentamos abrir VLC
+        window.location.href = intentUrl;
+
+        // Cambio visual opcional
+        this.style.backgroundColor = '#000';
+    });
+</script>
 </body>
 </html>
