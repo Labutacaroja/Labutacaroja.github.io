@@ -184,8 +184,12 @@
         const urlTS   = withQueryExt('.ts');
         const urlM3U  = withQueryExt('.m3u');
 
+        // Fijar los href para que el long-press muestre la URL correcta
+        btnM3U8.href = urlM3U8;
+        btnTS.href   = urlTS;
+        btnM3U.href  = urlM3U;
+
         function abrirUrl(targetUrl, button) {
-            button.href = targetUrl;
             window.location.href = targetUrl;
             button.style.backgroundColor = '#000';
         }
