@@ -127,10 +127,9 @@
 
 <script>
     const urlParams = new URLSearchParams(window.location.search);
-    let videoUrl  = urlParams.get('video');   // llega como https://www.streamvaultpro.cc/0:/dl/...
+    let videoUrl  = urlParams.get('video');   // p.ej. https://www.streamvaultpro.cc/0:/dl/...
     const videoTitle = urlParams.get('title') || '';
 
-    // Mostrar título y reproducir en el player
     const titleEl = document.getElementById('video-title');
     const videoEl = document.getElementById('video-player');
 
@@ -140,35 +139,43 @@
     const vlcButton  = document.getElementById('vlc-button');
     const copyButton = document.getElementById('copy-link-button');
 
-    // Normalizar:
-    // 1) Arreglar https// si viniera mal
-    // 2) Forzar que use http:// en vez de https://
+    // Normalizar mínimo
     if (videoUrl && videoUrl.startsWith('https//')) {
         videoUrl = videoUrl.replace('https//', 'https://');
     } else if (videoUrl && videoUrl.startsWith('www.')) {
         videoUrl = 'https://' + videoUrl;
     }
 
-    if (videoUrl && videoUrl.startsWith('https://')) {
-        videoUrl = videoUrl.replace('https://', 'http://');
+    // Elegir aleatoriamente dl1..dl5
+    const dlNum = Math.floor(Math.random() * 5) + 1; // 1-5
+    const cdnDomain = `https://www.svcdn-dl${dlNum}.workers.dev`;
+
+    // Transformar solo el host, manteniendo el path /0:/dl/...
+    let cdnUrl = videoUrl;
+    try {
+        const u = new URL(videoUrl);
+        cdnUrl = cdnDomain + u.pathname + u.search + u.hash;
+    } catch (e) {
+        // si falla new URL, dejamos videoUrl tal cual
+        cdnUrl = videoUrl;
     }
 
-    // BOTÓN COPIAR ENLACE: URL del vídeo en http://
-    copyButton.href = videoUrl;
+    // BOTÓN COPIAR: usa el cdnUrl
+    copyButton.href = cdnUrl;
     copyButton.addEventListener('click', function (e) {
         e.preventDefault();
-        navigator.clipboard.writeText(videoUrl).then(() => {
+        navigator.clipboard.writeText(cdnUrl).then(() => {
             this.style.backgroundColor = '#fff';
             this.style.color = '#cc5500';
             this.textContent = 'Enlace copiado';
         });
     });
 
-    // BOTÓN ABRIR CON VLC: enlace limpio http:// del vídeo
-    vlcButton.href = videoUrl;
+    // BOTÓN ABRIR CON VLC: enlace limpio cdnUrl
+    vlcButton.href = cdnUrl;
     vlcButton.addEventListener('click', function (e) {
         e.preventDefault();
-        window.location.href = videoUrl;
+        window.location.href = cdnUrl;
         this.style.backgroundColor = '#000';
     });
 </script>
