@@ -125,48 +125,52 @@
     <div class="pc-extension-text">(PC - Extensión "Abrir en VLC" recomendada para los navegadores Chrome, Edge, Opera y Firefox.)</div>
     <a href="https://webextension.org/listing/open-in-vlc.html?version=0.4.3&type=install" target="_blank" class="download-link">Descargar extensión pulsando aquí</a>
 
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        let videoUrl  = urlParams.get('video');   // https://www.streamvaultpro.cc/0:/dl/...
-        const videoTitle = urlParams.get('title') || '';
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    let videoUrl  = urlParams.get('video');   // llega como https://www.streamvaultpro.cc/0:/dl/...
+    const videoTitle = urlParams.get('title') || '';
 
-        // Mostrar título y reproducir en el player
-        const titleEl = document.getElementById('video-title');
-        const videoEl = document.getElementById('video-player');
+    // Mostrar título y reproducir en el player
+    const titleEl = document.getElementById('video-title');
+    const videoEl = document.getElementById('video-player');
 
-        titleEl.textContent = videoTitle;
-        videoEl.src = videoUrl;
+    titleEl.textContent = videoTitle;
+    videoEl.src = videoUrl;
 
-        const vlcButton  = document.getElementById('vlc-button');
-        const copyButton = document.getElementById('copy-link-button');
+    const vlcButton  = document.getElementById('vlc-button');
+    const copyButton = document.getElementById('copy-link-button');
 
-        // Normalizar por si llegara raro (seguridad extra)
-        if (videoUrl && videoUrl.startsWith('https//')) {
-            videoUrl = videoUrl.replace('https//', 'https://');
-        } else if (videoUrl && videoUrl.startsWith('www.')) {
-            videoUrl = 'https://' + videoUrl;
-        }
+    // Normalizar:
+    // 1) Arreglar https// si viniera mal
+    // 2) Forzar que use http:// en vez de https://
+    if (videoUrl && videoUrl.startsWith('https//')) {
+        videoUrl = videoUrl.replace('https//', 'https://');
+    } else if (videoUrl && videoUrl.startsWith('www.')) {
+        videoUrl = 'https://' + videoUrl;
+    }
 
-        // --- BOTÓN COPIAR ENLACE: SIEMPRE URL LIMPIA DEL VÍDEO ---
-        copyButton.href = videoUrl;
-        copyButton.addEventListener('click', function (e) {
-            e.preventDefault();
-            navigator.clipboard.writeText(videoUrl).then(() => {
-                this.style.backgroundColor = '#fff';
-                this.style.color = '#cc5500';
-                this.textContent = 'Enlace copiado';
-            });
+    if (videoUrl && videoUrl.startsWith('https://')) {
+        videoUrl = videoUrl.replace('https://', 'http://');
+    }
+
+    // BOTÓN COPIAR ENLACE: URL del vídeo en http://
+    copyButton.href = videoUrl;
+    copyButton.addEventListener('click', function (e) {
+        e.preventDefault();
+        navigator.clipboard.writeText(videoUrl).then(() => {
+            this.style.backgroundColor = '#fff';
+            this.style.color = '#cc5500';
+            this.textContent = 'Enlace copiado';
         });
+    });
 
-        // --- BOTÓN ABRIR CON VLC: ENLACE LIMPIO DEL VÍDEO ---
-        vlcButton.href = videoUrl;
-        vlcButton.addEventListener('click', function (e) {
-            e.preventDefault();
-            // Abrimos directamente la URL del vídeo.
-            // En móviles, se puede mantener pulsado y "Compartir" con VLC.
-            window.location.href = videoUrl;
-            this.style.backgroundColor = '#000';
-        });
-    </script>
+    // BOTÓN ABRIR CON VLC: enlace limpio http:// del vídeo
+    vlcButton.href = videoUrl;
+    vlcButton.addEventListener('click', function (e) {
+        e.preventDefault();
+        window.location.href = videoUrl;
+        this.style.backgroundColor = '#000';
+    });
+</script>
 </body>
 </html>
