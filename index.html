@@ -125,81 +125,46 @@
     <div class="pc-extension-text">(PC - Extensión "Abrir en VLC" recomendada para los navegadores Chrome, Edge, Opera y Firefox.)</div>
     <a href="https://webextension.org/listing/open-in-vlc.html?version=0.4.3&type=install" target="_blank" class="download-link">Descargar extensión pulsando aquí</a>
 
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        let videoUrl  = urlParams.get('video');   // https://www.streamvaultpro.cc/0:/dl/...
-        const videoTitle = urlParams.get('title') || 'La Butaca Roja';
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    let videoUrl  = urlParams.get('video');   // p.ej. https://www.streamvaultpro.cc/0:/dl/...
+    const videoTitle = urlParams.get('title') || '';
 
-        const titleEl = document.getElementById('video-title');
-        const videoEl = document.getElementById('video-player');
+    const titleEl = document.getElementById('video-title');
+    const videoEl = document.getElementById('video-player');
 
-        titleEl.textContent = videoTitle;
-        videoEl.src = videoUrl;
+    titleEl.textContent = videoTitle;
+    videoEl.src = videoUrl;
 
-        const vlcButton  = document.getElementById('vlc-button');
-        const copyButton = document.getElementById('copy-link-button');
+    const vlcButton  = document.getElementById('vlc-button');
+    const copyButton = document.getElementById('copy-link-button');
 
-        // Normalizar mínimo
-        if (videoUrl && videoUrl.startsWith('https//')) {
-            videoUrl = videoUrl.replace('https//', 'https://');
-        } else if (videoUrl && videoUrl.startsWith('www.')) {
-            videoUrl = 'https://' + videoUrl;
-        }
+    // Normalizar mínimo sobre la URL ORIGINAL
+    if (videoUrl && videoUrl.startsWith('https//')) {
+        videoUrl = videoUrl.replace('https//', 'https://');
+    } else if (videoUrl && videoUrl.startsWith('www.')) {
+        videoUrl = 'https://' + videoUrl;
+    }
 
-        // Elegir aleatoriamente dl1..dl5
-        const dlNum = Math.floor(Math.random() * 5) + 1; // 1-5
-        const cdnDomain = `https://www.svcdn-dl${dlNum}.workers.dev`;
-
-        // Transformar solo el host, manteniendo path y query
-        let cdnUrl = videoUrl;
-        try {
-            const u = new URL(videoUrl);
-            cdnUrl = cdnDomain + u.pathname + u.search + u.hash;
-        } catch (e) {
-            cdnUrl = videoUrl;
-        }
-
-        // --- BOTÓN COPIAR ENLACE: URL CDN directa ---
-        copyButton.href = cdnUrl;
-        copyButton.addEventListener('click', function (e) {
-            e.preventDefault();
-            navigator.clipboard.writeText(cdnUrl).then(() => {
-                this.style.backgroundColor = '#fff';
-                this.style.color = '#cc5500';
-                this.textContent = 'Enlace copiado';
-            });
+    // --- BOTÓN COPIAR ENLACE: URL ORIGINAL DEL VÍDEO ---
+    copyButton.href = videoUrl;
+    copyButton.addEventListener('click', function (e) {
+        e.preventDefault();
+        navigator.clipboard.writeText(videoUrl).then(() => {
+            this.style.backgroundColor = '#fff';
+            this.style.color = '#cc5500';
+            this.textContent = 'Enlace copiado';
         });
+    });
 
-        // --- BOTÓN ABRIR CON VLC: generar y descargar M3U ---
-        vlcButton.addEventListener('click', function (e) {
-            e.preventDefault();
-
-            // Puedes ajustar el user-agent si lo necesitas
-            const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-                     + '(KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
-
-            const m3uContent =
-`#EXTM3U
-#EXTINF:-1, ${videoTitle}
-#EXTVLCOPT:http-user-agent=${ua}
-${cdnUrl}
-`;
-
-            const blob = new Blob([m3uContent], { type: 'audio/x-mpegurl' });
-            const m3uUrl = URL.createObjectURL(blob);
-
-            const a = document.createElement('a');
-            a.href = m3uUrl;
-            a.download = 'labutacaroja.m3u';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-
-            // Liberar URL temporal después de un tiempo
-            setTimeout(() => URL.revokeObjectURL(m3uUrl), 5000);
-
-            this.style.backgroundColor = '#000';
-        });
-    </script>
+    // --- BOTÓN ABRIR CON VLC: ENLACE ORIGINAL DEL VÍDEO ---
+    vlcButton.href = videoUrl;
+    vlcButton.addEventListener('click', function (e) {
+        e.preventDefault();
+        // Abre directamente la URL del vídeo original
+        window.location.href = videoUrl;
+        this.style.backgroundColor = '#000';
+    });
+</script>
 </body>
 </html>
