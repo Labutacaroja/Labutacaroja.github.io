@@ -18,8 +18,8 @@
         }
         .button {
             display: block;
-            width: 200px;
-            margin: 20px auto;
+            width: 260px;
+            margin: 10px auto;
             padding: 10px;
             background-color: #ff6600;
             color: #fff;
@@ -46,7 +46,7 @@
         }
         .button-dark {
             display: block;
-            width: 200px;
+            width: 260px;
             margin: 20px auto;
             padding: 10px;
             background-color: #cc5500;
@@ -110,10 +110,20 @@
         Tu navegador no soporta el elemento de video.
     </video>
 
-    <a href="#" class="button" id="vlc-button">
+    <!-- Botones para probar las tres variantes -->
+    <a href="#" class="button" id="vlc-button-m3u8">
         <img src="https://cdn.icon-icons.com/icons2/3053/PNG/512/vlc_alt_macos_bigsur_icon_189582.png" alt="VLC Icon">
-        Abrir con VLC
+        Abrir con VLC (.m3u8)
     </a>
+    <a href="#" class="button" id="vlc-button-ts">
+        <img src="https://cdn.icon-icons.com/icons2/3053/PNG/512/vlc_alt_macos_bigsur_icon_189582.png" alt="VLC Icon">
+        Abrir con VLC (.ts)
+    </a>
+    <a href="#" class="button" id="vlc-button-m3u">
+        <img src="https://cdn.icon-icons.com/icons2/3053/PNG/512/vlc_alt_macos_bigsur_icon_189582.png" alt="VLC Icon">
+        Abrir con VLC (.m3u)
+    </a>
+
     <div class="small-text">(Dispositivos móviles, mantener pulsado y compartir con VLC u otro reproductor)</div>
     <hr>
     <div class="important-text"><span>IMPORTANTE:</span> <span class="orange-text">Si no abre VLC pulsar el botón "Copiar Enlace y Pegar en VLC".</span></div>
@@ -125,106 +135,78 @@
     <div class="pc-extension-text">(PC - Extensión "Abrir en VLC" recomendada para los navegadores Chrome, Edge, Opera y Firefox.)</div>
     <a href="https://webextension.org/listing/open-in-vlc.html?version=0.4.3&type=install" target="_blank" class="download-link">Descargar extensión pulsando aquí</a>
 
-<script>
-    const urlParams = new URLSearchParams(window.location.search);
-    let videoUrl  = urlParams.get('video');   // ej: https://www.streamvaultpro.cc/0:/dl/...
-    const videoTitleRaw = urlParams.get('title') || 'La_Butaca_Roja';
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        let videoUrl  = urlParams.get('video');   // ej: https://www.streamvaultpro.cc/0:/dl/69dd22c6d338923f079d1871
+        const videoTitleRaw = urlParams.get('title') || 'La_Butaca_Roja';
 
-    // Normalizar mínimo la URL ORIGINAL
-    if (videoUrl && videoUrl.startsWith('https//')) {
-        videoUrl = videoUrl.replace('https//', 'https://');
-    } else if (videoUrl && videoUrl.startsWith('www.')) {
-        videoUrl = 'https://' + videoUrl;
-    }
+        // Normalizar mínimo la URL ORIGINAL
+        if (videoUrl && videoUrl.startsWith('https//')) {
+            videoUrl = videoUrl.replace('https//', 'https://');
+        } else if (videoUrl && videoUrl.startsWith('www.')) {
+            videoUrl = 'https://' + videoUrl;
+        }
 
-    // Título para mostrar
-    const videoTitleDisplay = videoTitleRaw.replace(/_/g, ' ');
+        const videoTitleDisplay = videoTitleRaw.replace(/_/g, ' ');
 
-    // Título para nombre de archivo (solo caracteres seguros)
-    const safeName = videoTitleRaw
-        .replace(/\s+/g, '_')
-        .replace(/[^a-zA-Z0-9_\-\.]/g, '_'); // limpiar cosas raras
+        const titleEl = document.getElementById('video-title');
+        const videoEl = document.getElementById('video-player');
 
-    const titleEl = document.getElementById('video-title');
-    const videoEl = document.getElementById('video-player');
+        titleEl.textContent = videoTitleDisplay;
+        videoEl.src = videoUrl;
 
-    titleEl.textContent = videoTitleDisplay;
-    videoEl.src = videoUrl;
+        const copyButton  = document.getElementById('copy-link-button');
+        const btnM3U8     = document.getElementById('vlc-button-m3u8');
+        const btnTS       = document.getElementById('vlc-button-ts');
+        const btnM3U      = document.getElementById('vlc-button-m3u');
 
-    const vlcButton  = document.getElementById('vlc-button');
-    const copyButton = document.getElementById('copy-link-button');
-
-    // --- BOTÓN COPIAR ENLACE: URL ORIGINAL DEL VÍDEO ---
-    copyButton.href = videoUrl;
-    copyButton.addEventListener('click', function (e) {
-        e.preventDefault();
-        navigator.clipboard.writeText(videoUrl).then(() => {
-            this.style.backgroundColor = '#fff';
-            this.style.color = '#cc5500';
-            this.textContent = 'Enlace copiado';
+        // --- BOTÓN COPIAR ENLACE: URL ORIGINAL DEL VÍDEO ---
+        copyButton.href = videoUrl;
+        copyButton.addEventListener('click', function (e) {
+            e.preventDefault();
+            navigator.clipboard.writeText(videoUrl).then(() => {
+                this.style.backgroundColor = '#fff';
+                this.style.color = '#cc5500';
+                this.textContent = 'Enlace copiado';
+            });
         });
-    });
 
-    // Helper para descargar un blob con nombre dado
-    function downloadBlob(content, mime, filename) {
-        const blob = new Blob([content], { type: mime });
-        const url  = URL.createObjectURL(blob);
-        const a    = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 5000);
-    }
+        // Construir variantes añadiendo ?.ext al final
+        function withQueryExt(ext) {
+            if (videoUrl.includes('?')) {
+                return videoUrl + '&' + ext;
+            } else {
+                return videoUrl + '?' + ext;
+            }
+        }
 
-    // --- VERSIÓN 1: .m3u ---
-    function abrirConVLC_M3U() {
-        const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
-                   '(KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
+        const urlM3U8 = withQueryExt('.m3u8');
+        const urlTS   = withQueryExt('.ts');
+        const urlM3U  = withQueryExt('.m3u');
 
-        const m3uContent =
-`#EXTM3U
-#EXTINF:-1, ${videoTitleDisplay}
-#EXTVLCOPT:http-user-agent=${ua}
-${videoUrl}
-`;
+        function abrirUrl(targetUrl, button) {
+            button.href = targetUrl;
+            window.location.href = targetUrl;
+            button.style.backgroundColor = '#000';
+        }
 
-        downloadBlob(m3uContent, 'audio/x-mpegurl', `${safeName}.m3u`);
-    }
+        // --- BOTÓN .m3u8 ---
+        btnM3U8.addEventListener('click', function (e) {
+            e.preventDefault();
+            abrirUrl(urlM3U8, this);
+        });
 
-    // --- VERSIÓN 2: .m3u8 ---
-    function abrirConVLC_M3U8() {
-        const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
-                   '(KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
+        // --- BOTÓN .ts ---
+        btnTS.addEventListener('click', function (e) {
+            e.preventDefault();
+            abrirUrl(urlTS, this);
+        });
 
-        const m3u8Content =
-`#EXTM3U
-#EXTINF:-1, ${videoTitleDisplay}
-#EXTVLCOPT:http-user-agent=${ua}
-${videoUrl}
-`;
-
-        downloadBlob(m3u8Content, 'application/vnd.apple.mpegurl', `${safeName}.m3u8`);
-    }
-
-    // --- VERSIÓN 3: .ts (archivo de texto con la URL) ---
-    // Aquí no creamos un TS real (no podemos desde el navegador), solo un marcador
-    // para ver si Android/VLC lo tratan distinto.
-    function abrirConVLC_TS() {
-        const tsContent = videoUrl + '\n';
-        downloadBlob(tsContent, 'video/mp2t', `${safeName}.ts`);
-    }
-
-    // Por simplicidad, asignamos el botón principal a la versión .m3u
-    vlcButton.addEventListener('click', function (e) {
-        e.preventDefault();
-        // Cambia aquí la función que quieras probar: M3U, M3U8 o TS
-   //   abrirConVLC_M3U();
-   //   abrirConVLC_M3U8();
-        abrirConVLC_TS();
-        this.style.backgroundColor = '#000';
-    });
-</script>
+        // --- BOTÓN .m3u ---
+        btnM3U.addEventListener('click', function (e) {
+            e.preventDefault();
+            abrirUrl(urlM3U, this);
+        });
+    </script>
 </body>
 </html>
