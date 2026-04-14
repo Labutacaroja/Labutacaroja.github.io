@@ -127,24 +127,32 @@
 
 <script>
     const urlParams = new URLSearchParams(window.location.search);
-    let videoUrl  = urlParams.get('video');   // p.ej. https://www.streamvaultpro.cc/0:/dl/...
-    const videoTitle = urlParams.get('title') || '';
+    let videoUrl  = urlParams.get('video');   // ej: https://www.streamvaultpro.cc/0:/dl/...
+    const videoTitleRaw = urlParams.get('title') || 'La_Butaca_Roja';
 
-    const titleEl = document.getElementById('video-title');
-    const videoEl = document.getElementById('video-player');
-
-    titleEl.textContent = videoTitle;
-    videoEl.src = videoUrl;
-
-    const vlcButton  = document.getElementById('vlc-button');
-    const copyButton = document.getElementById('copy-link-button');
-
-    // Normalizar mínimo sobre la URL ORIGINAL
+    // Normalizar mínimo la URL ORIGINAL
     if (videoUrl && videoUrl.startsWith('https//')) {
         videoUrl = videoUrl.replace('https//', 'https://');
     } else if (videoUrl && videoUrl.startsWith('www.')) {
         videoUrl = 'https://' + videoUrl;
     }
+
+    // Título para mostrar
+    const videoTitleDisplay = videoTitleRaw.replace(/_/g, ' ');
+
+    // Título para nombre de archivo (solo caracteres seguros)
+    const safeName = videoTitleRaw
+        .replace(/\s+/g, '_')
+        .replace(/[^a-zA-Z0-9_\-\.]/g, '_'); // limpiar cosas raras
+
+    const titleEl = document.getElementById('video-title');
+    const videoEl = document.getElementById('video-player');
+
+    titleEl.textContent = videoTitleDisplay;
+    videoEl.src = videoUrl;
+
+    const vlcButton  = document.getElementById('vlc-button');
+    const copyButton = document.getElementById('copy-link-button');
 
     // --- BOTÓN COPIAR ENLACE: URL ORIGINAL DEL VÍDEO ---
     copyButton.href = videoUrl;
@@ -157,12 +165,62 @@
         });
     });
 
-    // --- BOTÓN ABRIR CON VLC: ENLACE ORIGINAL DEL VÍDEO ---
-    vlcButton.href = videoUrl;
+    // Helper para descargar un blob con nombre dado
+    function downloadBlob(content, mime, filename) {
+        const blob = new Blob([content], { type: mime });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+    }
+
+    // --- VERSIÓN 1: .m3u ---
+    function abrirConVLC_M3U() {
+        const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
+                   '(KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
+
+        const m3uContent =
+`#EXTM3U
+#EXTINF:-1, ${videoTitleDisplay}
+#EXTVLCOPT:http-user-agent=${ua}
+${videoUrl}
+`;
+
+        downloadBlob(m3uContent, 'audio/x-mpegurl', `${safeName}.m3u`);
+    }
+
+    // --- VERSIÓN 2: .m3u8 ---
+    function abrirConVLC_M3U8() {
+        const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
+                   '(KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
+
+        const m3u8Content =
+`#EXTM3U
+#EXTINF:-1, ${videoTitleDisplay}
+#EXTVLCOPT:http-user-agent=${ua}
+${videoUrl}
+`;
+
+        downloadBlob(m3u8Content, 'application/vnd.apple.mpegurl', `${safeName}.m3u8`);
+    }
+
+    // --- VERSIÓN 3: .ts (archivo de texto con la URL) ---
+    // Aquí no creamos un TS real (no podemos desde el navegador), solo un marcador
+    // para ver si Android/VLC lo tratan distinto.
+    function abrirConVLC_TS() {
+        const tsContent = videoUrl + '\n';
+        downloadBlob(tsContent, 'video/mp2t', `${safeName}.ts`);
+    }
+
+    // Por simplicidad, asignamos el botón principal a la versión .m3u
     vlcButton.addEventListener('click', function (e) {
         e.preventDefault();
-        // Abre directamente la URL del vídeo original
-        window.location.href = videoUrl;
+        // Cambia aquí la función que quieras probar: M3U, M3U8 o TS
+        abrirConVLC_M3U();   // o abrirConVLC_M3U8(); o abrirConVLC_TS();
         this.style.backgroundColor = '#000';
     });
 </script>
