@@ -19,7 +19,7 @@
         .button {
             display: block;
             width: 260px;
-            margin: 10px auto;
+            margin: 20px auto;
             padding: 10px;
             background-color: #ff6600;
             color: #fff;
@@ -110,23 +110,17 @@
         Tu navegador no soporta el elemento de video.
     </video>
 
-    <!-- Botones para probar las tres variantes -->
-    <a href="#" class="button" id="vlc-button-m3u8">
+    <!-- UN SOLO BOTÓN ABRIR CON VLC -->
+    <a href="#" class="button" id="vlc-button">
         <img src="https://cdn.icon-icons.com/icons2/3053/PNG/512/vlc_alt_macos_bigsur_icon_189582.png" alt="VLC Icon">
-        Abrir con VLC (.m3u8)
+        Abrir con VLC
     </a>
-    <a href="#" class="button" id="vlc-button-ts">
-        <img src="https://cdn.icon-icons.com/icons2/3053/PNG/512/vlc_alt_macos_bigsur_icon_189582.png" alt="VLC Icon">
-        Abrir con VLC (.ts)
-    </a>
-    <a href="#" class="button" id="vlc-button-m3u">
-        <img src="https://cdn.icon-icons.com/icons2/3053/PNG/512/vlc_alt_macos_bigsur_icon_189582.png" alt="VLC Icon">
-        Abrir con VLC (.m3u)
-    </a>
-
-    <div class="small-text">(Dispositivos móviles, mantener pulsado y compartir con VLC u otro reproductor)</div>
+    <div class="small-text">(Dispositivos móviles)</div>
     <hr>
-    <div class="important-text"><span>IMPORTANTE:</span> <span class="orange-text">Si no abre VLC pulsar el botón "Copiar Enlace y Pegar en VLC".</span></div>
+    <div class="important-text">
+        <span>IMPORTANTE:</span>
+        <span class="orange-text">Si no abre VLC pulsar el botón "Copiar Enlace y Pegar en VLC".</span>
+    </div>
     <a href="#" class="button-dark" id="copy-link-button">
         Copiar Enlace y Pegar en VLC
     </a>
@@ -135,88 +129,82 @@
     <div class="pc-extension-text">(PC - Extensión "Abrir en VLC" recomendada para los navegadores Chrome, Edge, Opera y Firefox.)</div>
     <a href="https://webextension.org/listing/open-in-vlc.html?version=0.4.3&type=install" target="_blank" class="download-link">Descargar extensión pulsando aquí</a>
 
-<script>
-    const urlParams = new URLSearchParams(window.location.search);
-    let originalUrl  = urlParams.get('video');   // ej: https://www.streamvaultpro.cc/0:/dl/69dd22c6d338923f079d1871
-    const videoTitleRaw = urlParams.get('title') || 'La_Butaca_Roja';
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        let videoUrl  = urlParams.get('video');   // ej: https://www.streamvaultpro.cc/0:/dl/69dd22c6d338923f079d1871
+        const videoTitleRaw = urlParams.get('title') || 'La_Butaca_Roja';
 
-    // Normalizar mínimo la URL ORIGINAL
-    if (originalUrl && originalUrl.startsWith('https//')) {
-        originalUrl = originalUrl.replace('https//', 'https://');
-    } else if (originalUrl && originalUrl.startsWith('www.')) {
-        originalUrl = 'https://' + originalUrl;
-    }
+        // Normalizar mínimo la URL ORIGINAL
+        if (videoUrl && videoUrl.startsWith('https//')) {
+            videoUrl = videoUrl.replace('https//', 'https://');
+        } else if (videoUrl && videoUrl.startsWith('www.')) {
+            videoUrl = 'https://' + videoUrl;
+        }
 
-    const videoTitleDisplay = videoTitleRaw.replace(/_/g, ' ');
+        const videoTitleDisplay = videoTitleRaw.replace(/_/g, ' ');
+        const safeName = videoTitleRaw
+            .replace(/\s+/g, '_')
+            .replace(/[^a-zA-Z0-9_\-\.]/g, '_');
 
-    const titleEl = document.getElementById('video-title');
-    const videoEl = document.getElementById('video-player');
+        const titleEl = document.getElementById('video-title');
+        const videoEl = document.getElementById('video-player');
 
-    titleEl.textContent = videoTitleDisplay;
-    // El reproductor usa la original
-    videoEl.src = originalUrl;
+        titleEl.textContent = videoTitleDisplay;
+        videoEl.src = videoUrl;
 
-    const copyButton  = document.getElementById('copy-link-button');
-    const btnM3U8     = document.getElementById('vlc-button-m3u8');
-    const btnTS       = document.getElementById('vlc-button-ts');
-    const btnM3U      = document.getElementById('vlc-button-m3u');
+        const vlcButton  = document.getElementById('vlc-button');
+        const copyButton = document.getElementById('copy-link-button');
 
-    // --- BOTÓN COPIAR ENLACE: URL ORIGINAL DEL VÍDEO ---
-    copyButton.href = originalUrl;
-    copyButton.addEventListener('click', function (e) {
-        e.preventDefault();
-        navigator.clipboard.writeText(originalUrl).then(() => {
-            this.style.backgroundColor = '#fff';
-            this.style.color = '#cc5500';
-            this.textContent = 'Enlace copiado';
+        // --- BOTÓN COPIAR ENLACE: URL ORIGINAL DEL VÍDEO ---
+        copyButton.href = videoUrl;
+        copyButton.addEventListener('click', function (e) {
+            e.preventDefault();
+            navigator.clipboard.writeText(videoUrl).then(() => {
+                this.style.backgroundColor = '#fff';
+                this.style.color = '#cc5500';
+                this.textContent = 'Enlace copiado';
+            });
         });
-    });
 
-    // Elegir aleatoriamente dl1..dl5
-    const dlNum = Math.floor(Math.random() * 5) + 1; // 1-5
-    const cdnOrigin = `https://www.svcdn-dl${dlNum}.workers.dev`;
+        // Helper para descargar un blob con nombre dado
+        function downloadBlob(content, mime, filename) {
+            const blob = new Blob([content], { type: mime });
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 5000);
+        }
 
-    // Construir la URL cdn manteniendo path/query de la original
-    let cdnBaseUrl = originalUrl;
-    try {
-        const u = new URL(originalUrl);
-        cdnBaseUrl = cdnOrigin + u.pathname + u.search + u.hash;
-    } catch (e) {
-        cdnBaseUrl = originalUrl.replace('www.streamvaultpro.cc', `www.svcdn-dl${dlNum}.workers.dev`);
-    }
+        // --- BOTÓN ABRIR CON VLC: muestra mensaje y descarga .m3u8 ---
+        vlcButton.addEventListener('click', function (e) {
+            e.preventDefault();
 
-    // Variantes EXACTAS en CDN con query final
-    const cdnTS   = cdnBaseUrl + (cdnBaseUrl.includes('?') ? '&ts' : '?ts');
-    const cdnM3U8 = cdnBaseUrl + (cdnBaseUrl.includes('?') ? '&.m3u8' : '?.m3u8');
-    const cdnM3U  = cdnBaseUrl + (cdnBaseUrl.includes('?') ? '&.m3u'  : '?.m3u');
+            alert(
+                'Para reproducir con VLC, haga lo siguiente:\n\n' +
+                '1. Pulse OK.\n' +
+                '2. Espere unos segundos.\n' +
+                '3. Vaya a la carpeta de DESCARGAS del navegador.\n' +
+                '4. Verá un archivo con el título; al pulsarlo podrá elegir VLC para reproducir.'
+            );
 
-    // Fijar los href para que el long-press muestre justo esas URLs
-    btnTS.href   = cdnTS;
-    btnM3U8.href = cdnM3U8;
-    btnM3U.href  = cdnM3U;
+            const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
+                       '(KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
 
-    function abrirUrl(targetUrl, button) {
-        window.location.href = targetUrl;
-        button.style.backgroundColor = '#000';
-    }
+            const m3u8Content =
+`#EXTM3U
+#EXTINF:-1, ${videoTitleDisplay}
+#EXTVLCOPT:http-user-agent=${ua}
+${videoUrl}
+`;
 
-    // --- BOTÓN .ts ---
-    btnTS.addEventListener('click', function (e) {
-        e.preventDefault();
-        abrirUrl(cdnTS, this);
-    });
+            downloadBlob(m3u8Content, 'application/vnd.apple.mpegurl', `${safeName}.m3u8`);
 
-    // --- BOTÓN .m3u8 ---
-    btnM3U8.addEventListener('click', function (e) {
-        e.preventDefault();
-        abrirUrl(cdnM3U8, this);
-    });
-
-    // --- BOTÓN .m3u ---
-    btnM3U.addEventListener('click', function (e) {
-        e.preventDefault();
-        abrirUrl(cdnM3U, this);
-    });
-</script>
+            this.style.backgroundColor = '#000';
+        });
+    </script>
 </body>
 </html>
