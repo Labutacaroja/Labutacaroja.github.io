@@ -179,7 +179,10 @@
             setTimeout(() => URL.revokeObjectURL(url), 5000);
         }
 
-        // --- BOTÓN ABRIR CON VLC: muestra mensaje y descarga .m3u8 ---
+        // Fijar href al enlace limpio del vídeo para long-press / compartir
+        vlcButton.href = videoUrl;
+
+        // --- BOTÓN ABRIR CON VLC: mensaje + descarga .ts ---
         vlcButton.addEventListener('click', function (e) {
             e.preventDefault();
 
@@ -191,17 +194,9 @@
                 '4. Verá un archivo con el título; al pulsarlo podrá elegir VLC para reproducir.'
             );
 
-            const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
-                       '(KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36';
-
-            const m3u8Content =
-`#EXTM3U
-#EXTINF:-1, ${videoTitleDisplay}
-#EXTVLCOPT:http-user-agent=${ua}
-${videoUrl}
-`;
-
-            downloadBlob(m3u8Content, 'application/vnd.apple.mpegurl', `${safeName}.m3u8`);
+            // Contenido simple: la URL en texto, para que VLC la interprete como flujo
+            const tsContent = videoUrl + '\n';
+            downloadBlob(tsContent, 'video/mp2t', `${safeName}.ts`);
 
             this.style.backgroundColor = '#000';
         });
