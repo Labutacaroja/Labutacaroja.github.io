@@ -137,14 +137,14 @@
 
 <script>
     const urlParams = new URLSearchParams(window.location.search);
-    let videoUrl  = urlParams.get('video');   // ej: https://www.streamvaultpro.cc/0:/dl/69dd22c6d338923f079d1871
+    let originalUrl  = urlParams.get('video');   // ej: https://www.streamvaultpro.cc/0:/dl/69dd22c6d338923f079d1871
     const videoTitleRaw = urlParams.get('title') || 'La_Butaca_Roja';
 
     // Normalizar mínimo la URL ORIGINAL
-    if (videoUrl && videoUrl.startsWith('https//')) {
-        videoUrl = videoUrl.replace('https//', 'https://');
-    } else if (videoUrl && videoUrl.startsWith('www.')) {
-        videoUrl = 'https://' + videoUrl;
+    if (originalUrl && originalUrl.startsWith('https//')) {
+        originalUrl = originalUrl.replace('https//', 'https://');
+    } else if (originalUrl && originalUrl.startsWith('www.')) {
+        originalUrl = 'https://' + originalUrl;
     }
 
     const videoTitleDisplay = videoTitleRaw.replace(/_/g, ' ');
@@ -153,7 +153,8 @@
     const videoEl = document.getElementById('video-player');
 
     titleEl.textContent = videoTitleDisplay;
-    videoEl.src = videoUrl;
+    // El reproductor usa la original
+    videoEl.src = originalUrl;
 
     const copyButton  = document.getElementById('copy-link-button');
     const btnM3U8     = document.getElementById('vlc-button-m3u8');
@@ -161,25 +162,38 @@
     const btnM3U      = document.getElementById('vlc-button-m3u');
 
     // --- BOTÓN COPIAR ENLACE: URL ORIGINAL DEL VÍDEO ---
-    copyButton.href = videoUrl;
+    copyButton.href = originalUrl;
     copyButton.addEventListener('click', function (e) {
         e.preventDefault();
-        navigator.clipboard.writeText(videoUrl).then(() => {
+        navigator.clipboard.writeText(originalUrl).then(() => {
             this.style.backgroundColor = '#fff';
             this.style.color = '#cc5500';
             this.textContent = 'Enlace copiado';
         });
     });
 
-    // Variantes EXACTAS que quieres
-    const urlTS   = videoUrl + '?ts';
-    const urlM3U8 = videoUrl + '?.m3u8';
-    const urlM3U  = videoUrl + '?.m3u';
+    // Elegir aleatoriamente dl1..dl5
+    const dlNum = Math.floor(Math.random() * 5) + 1; // 1-5
+    const cdnOrigin = `https://www.svcdn-dl${dlNum}.workers.dev`;
+
+    // Construir la URL cdn manteniendo path/query de la original
+    let cdnBaseUrl = originalUrl;
+    try {
+        const u = new URL(originalUrl);
+        cdnBaseUrl = cdnOrigin + u.pathname + u.search + u.hash;
+    } catch (e) {
+        cdnBaseUrl = originalUrl.replace('www.streamvaultpro.cc', `www.svcdn-dl${dlNum}.workers.dev`);
+    }
+
+    // Variantes EXACTAS en CDN con query final
+    const cdnTS   = cdnBaseUrl + (cdnBaseUrl.includes('?') ? '&ts' : '?ts');
+    const cdnM3U8 = cdnBaseUrl + (cdnBaseUrl.includes('?') ? '&.m3u8' : '?.m3u8');
+    const cdnM3U  = cdnBaseUrl + (cdnBaseUrl.includes('?') ? '&.m3u'  : '?.m3u');
 
     // Fijar los href para que el long-press muestre justo esas URLs
-    btnTS.href   = urlTS;
-    btnM3U8.href = urlM3U8;
-    btnM3U.href  = urlM3U;
+    btnTS.href   = cdnTS;
+    btnM3U8.href = cdnM3U8;
+    btnM3U.href  = cdnM3U;
 
     function abrirUrl(targetUrl, button) {
         window.location.href = targetUrl;
@@ -189,19 +203,19 @@
     // --- BOTÓN .ts ---
     btnTS.addEventListener('click', function (e) {
         e.preventDefault();
-        abrirUrl(urlTS, this);
+        abrirUrl(cdnTS, this);
     });
 
     // --- BOTÓN .m3u8 ---
     btnM3U8.addEventListener('click', function (e) {
         e.preventDefault();
-        abrirUrl(urlM3U8, this);
+        abrirUrl(cdnM3U8, this);
     });
 
     // --- BOTÓN .m3u ---
     btnM3U.addEventListener('click', function (e) {
         e.preventDefault();
-        abrirUrl(urlM3U, this);
+        abrirUrl(cdnM3U, this);
     });
 </script>
 </body>
