@@ -135,82 +135,74 @@
     <div class="pc-extension-text">(PC - Extensión "Abrir en VLC" recomendada para los navegadores Chrome, Edge, Opera y Firefox.)</div>
     <a href="https://webextension.org/listing/open-in-vlc.html?version=0.4.3&type=install" target="_blank" class="download-link">Descargar extensión pulsando aquí</a>
 
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        let videoUrl  = urlParams.get('video');   // ej: https://www.streamvaultpro.cc/0:/dl/69dd22c6d338923f079d1871
-        const videoTitleRaw = urlParams.get('title') || 'La_Butaca_Roja';
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    let videoUrl  = urlParams.get('video');   // ej: https://www.streamvaultpro.cc/0:/dl/69dd22c6d338923f079d1871
+    const videoTitleRaw = urlParams.get('title') || 'La_Butaca_Roja';
 
-        // Normalizar mínimo la URL ORIGINAL
-        if (videoUrl && videoUrl.startsWith('https//')) {
-            videoUrl = videoUrl.replace('https//', 'https://');
-        } else if (videoUrl && videoUrl.startsWith('www.')) {
-            videoUrl = 'https://' + videoUrl;
-        }
+    // Normalizar mínimo la URL ORIGINAL
+    if (videoUrl && videoUrl.startsWith('https//')) {
+        videoUrl = videoUrl.replace('https//', 'https://');
+    } else if (videoUrl && videoUrl.startsWith('www.')) {
+        videoUrl = 'https://' + videoUrl;
+    }
 
-        const videoTitleDisplay = videoTitleRaw.replace(/_/g, ' ');
+    const videoTitleDisplay = videoTitleRaw.replace(/_/g, ' ');
 
-        const titleEl = document.getElementById('video-title');
-        const videoEl = document.getElementById('video-player');
+    const titleEl = document.getElementById('video-title');
+    const videoEl = document.getElementById('video-player');
 
-        titleEl.textContent = videoTitleDisplay;
-        videoEl.src = videoUrl;
+    titleEl.textContent = videoTitleDisplay;
+    videoEl.src = videoUrl;
 
-        const copyButton  = document.getElementById('copy-link-button');
-        const btnM3U8     = document.getElementById('vlc-button-m3u8');
-        const btnTS       = document.getElementById('vlc-button-ts');
-        const btnM3U      = document.getElementById('vlc-button-m3u');
+    const copyButton  = document.getElementById('copy-link-button');
+    const btnM3U8     = document.getElementById('vlc-button-m3u8');
+    const btnTS       = document.getElementById('vlc-button-ts');
+    const btnM3U      = document.getElementById('vlc-button-m3u');
 
-        // --- BOTÓN COPIAR ENLACE: URL ORIGINAL DEL VÍDEO ---
-        copyButton.href = videoUrl;
-        copyButton.addEventListener('click', function (e) {
-            e.preventDefault();
-            navigator.clipboard.writeText(videoUrl).then(() => {
-                this.style.backgroundColor = '#fff';
-                this.style.color = '#cc5500';
-                this.textContent = 'Enlace copiado';
-            });
+    // --- BOTÓN COPIAR ENLACE: URL ORIGINAL DEL VÍDEO ---
+    copyButton.href = videoUrl;
+    copyButton.addEventListener('click', function (e) {
+        e.preventDefault();
+        navigator.clipboard.writeText(videoUrl).then(() => {
+            this.style.backgroundColor = '#fff';
+            this.style.color = '#cc5500';
+            this.textContent = 'Enlace copiado';
         });
+    });
 
-        // Construir variantes añadiendo ?.ext al final
-        function withQueryExt(ext) {
-            if (videoUrl.includes('?')) {
-                return videoUrl + '&' + ext;
-            } else {
-                return videoUrl + '?' + ext;
-            }
-        }
+    // Variantes EXACTAS que quieres
+    const urlTS   = videoUrl + '?ts';
+    const urlM3U8 = videoUrl + '?.m3u8';
+    const urlM3U  = videoUrl + '?.m3u';
 
-        const urlM3U8 = withQueryExt('.m3u8');
-        const urlTS   = withQueryExt('.ts');
-        const urlM3U  = withQueryExt('.m3u');
+    // Fijar los href para que el long-press muestre justo esas URLs
+    btnTS.href   = urlTS;
+    btnM3U8.href = urlM3U8;
+    btnM3U.href  = urlM3U;
 
-        // Fijar los href para que el long-press muestre la URL correcta
-        btnM3U8.href = urlM3U8;
-        btnTS.href   = urlTS;
-        btnM3U.href  = urlM3U;
+    function abrirUrl(targetUrl, button) {
+        window.location.href = targetUrl;
+        button.style.backgroundColor = '#000';
+    }
 
-        function abrirUrl(targetUrl, button) {
-            window.location.href = targetUrl;
-            button.style.backgroundColor = '#000';
-        }
+    // --- BOTÓN .ts ---
+    btnTS.addEventListener('click', function (e) {
+        e.preventDefault();
+        abrirUrl(urlTS, this);
+    });
 
-        // --- BOTÓN .m3u8 ---
-        btnM3U8.addEventListener('click', function (e) {
-            e.preventDefault();
-            abrirUrl(urlM3U8, this);
-        });
+    // --- BOTÓN .m3u8 ---
+    btnM3U8.addEventListener('click', function (e) {
+        e.preventDefault();
+        abrirUrl(urlM3U8, this);
+    });
 
-        // --- BOTÓN .ts ---
-        btnTS.addEventListener('click', function (e) {
-            e.preventDefault();
-            abrirUrl(urlTS, this);
-        });
-
-        // --- BOTÓN .m3u ---
-        btnM3U.addEventListener('click', function (e) {
-            e.preventDefault();
-            abrirUrl(urlM3U, this);
-        });
-    </script>
+    // --- BOTÓN .m3u ---
+    btnM3U.addEventListener('click', function (e) {
+        e.preventDefault();
+        abrirUrl(urlM3U, this);
+    });
+</script>
 </body>
 </html>
